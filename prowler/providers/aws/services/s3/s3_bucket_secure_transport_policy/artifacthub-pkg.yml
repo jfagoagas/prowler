@@ -1,0 +1,18 @@
+version: 0.1.0
+name: s3_bucket_secure_transport_policy
+displayName: s3_bucket_secure_transport_policy
+createdAt: 2020-07-27T18:00:00Z
+description: s3_bucket_secure_transport_policy
+license: aaaaa
+homeURL: https://github.com/jfagoagas/prowler
+# containerImage:
+keywords:
+  - s3_bucket_secure_transport_policy
+links:
+  - name: source
+    url: ttps://github.com/jfagoagas/prowler
+readme: |
+  AAAAAA
+maintainers:
+  - name: AAAA
+    email: aaaa@gmail.com

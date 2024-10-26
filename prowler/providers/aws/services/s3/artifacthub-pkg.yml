@@ -1,0 +1,22 @@
+version: 0.1.0
+name: prowler
+displayName: prowler
+createdAt: 2020-07-27T18:00:00Z
+description: aaaaa
+license: aaaaa
+homeURL: https://github.com/jfagoagas/prowler
+# containerImage: 
+keywords:
+  - monitoring
+  - kubernetes
+  - deprecations
+  - policies
+  - opa
+links:
+  - name: source
+    url: ttps://github.com/jfagoagas/prowler
+readme: |
+  AAAAAA
+maintainers:
+  - name: AAAA
+    email: aaaa@gmail.com

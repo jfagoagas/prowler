@@ -15,7 +15,12 @@ readme: |
   # s3_bucket_public_access
 
   Check: `s3_bucket_public_access`
+install: |
+  `prowler registry download s3_bucket_public_access`
 
+  and
+
+  `prowler install s3_bucket_public_access`
 maintainers:
   - name: AAAA
     email: aaaa@gmail.com

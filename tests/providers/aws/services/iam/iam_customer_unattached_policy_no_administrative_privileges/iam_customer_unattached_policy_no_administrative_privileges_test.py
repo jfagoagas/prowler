@@ -26,12 +26,15 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
         aws_provider = set_mocked_aws_provider([AWS_REGION_US_EAST_1])
         from prowler.providers.aws.services.iam.iam_service import IAM
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
-            new=IAM(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
+                new=IAM(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges import (
                 iam_customer_unattached_policy_no_administrative_privileges,
@@ -39,6 +42,7 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
 
             check = iam_customer_unattached_policy_no_administrative_privileges()
             results = check.execute()
+            assert len(results) == 1, f"Expected 1 result, but got {len(results)}"
             for result in results:
                 if result.resource_id == "policy1":
                     assert result.status == "FAIL"
@@ -65,12 +69,15 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
         aws_provider = set_mocked_aws_provider([AWS_REGION_US_EAST_1])
         from prowler.providers.aws.services.iam.iam_service import IAM
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
-            new=IAM(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
+                new=IAM(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges import (
                 iam_customer_unattached_policy_no_administrative_privileges,
@@ -78,6 +85,7 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
 
             check = iam_customer_unattached_policy_no_administrative_privileges()
             results = check.execute()
+            assert len(results) == 1, f"Expected 1 result, but got {len(results)}"
             for result in results:
                 if result.resource_id == "policy1":
                     assert result.status == "PASS"
@@ -116,12 +124,15 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
         aws_provider = set_mocked_aws_provider([AWS_REGION_US_EAST_1])
         from prowler.providers.aws.services.iam.iam_service import IAM
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
-            new=IAM(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges.iam_client",
+                new=IAM(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.iam.iam_customer_unattached_policy_no_administrative_privileges.iam_customer_unattached_policy_no_administrative_privileges import (
                 iam_customer_unattached_policy_no_administrative_privileges,
@@ -129,6 +140,7 @@ class Test_iam_customer_unattached_policy_no_administrative_privileges_test:
 
             check = iam_customer_unattached_policy_no_administrative_privileges()
             results = check.execute()
+            assert len(results) == 2, f"Expected 2 results, but got {len(results)}"
             for result in results:
                 if result.resource_id == "policy1":
                     assert result.status == "PASS"

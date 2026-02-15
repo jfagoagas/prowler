@@ -11,6 +11,7 @@ from prowler.config.config import (
     orange_color,
 )
 from prowler.lib.logger import logger
+from prowler.providers.github.models import GithubAppIdentityInfo, GithubIdentityInfo
 
 
 def display_summary_table(
@@ -40,6 +41,61 @@ def display_summary_table(
         elif provider.type == "kubernetes":
             entity_type = "Context"
             audited_entities = provider.identity.context
+        elif provider.type == "github":
+            if isinstance(provider.identity, GithubIdentityInfo):
+                entity_type = "User Name"
+                audited_entities = provider.identity.account_name
+            elif isinstance(provider.identity, GithubAppIdentityInfo):
+                entity_type = "App ID"
+                audited_entities = provider.identity.app_id
+        elif provider.type == "m365":
+            entity_type = "Tenant Domain"
+            audited_entities = provider.identity.tenant_domain
+        elif provider.type == "mongodbatlas":
+            entity_type = "Organization"
+            audited_entities = provider.identity.organization_name
+        elif provider.type == "cloudflare":
+            entity_type = "Account"
+            audited_accounts = getattr(provider.identity, "audited_accounts", []) or []
+            if audited_accounts:
+                audited_entities = ", ".join(audited_accounts)
+            else:
+                audited_entities = (
+                    getattr(provider.identity, "email", None) or "Cloudflare"
+                )
+        elif provider.type == "nhn":
+            entity_type = "Tenant Domain"
+            audited_entities = provider.identity.tenant_domain
+        elif provider.type == "iac":
+            if provider.scan_repository_url:
+                entity_type = "Repository"
+                audited_entities = provider.scan_repository_url
+            else:
+                entity_type = "Directory"
+                audited_entities = provider.scan_path
+        elif provider.type == "llm":
+            entity_type = "LLM"
+            audited_entities = provider.model
+        elif provider.type == "oraclecloud":
+            entity_type = "Tenancy"
+            audited_entities = (
+                provider.identity.tenancy_name
+                if provider.identity.tenancy_name != "unknown"
+                else provider.identity.tenancy_id
+            )
+        elif provider.type == "alibabacloud":
+            entity_type = "Account"
+            audited_entities = provider.identity.account_id
+        elif provider.type == "openstack":
+            entity_type = "Project"
+            audited_entities = (
+                provider.identity.project_name
+                if provider.identity.project_name
+                else provider.identity.project_id
+            )
+        elif provider.type == "image":
+            entity_type = "Image"
+            audited_entities = ", ".join(provider.images)
 
         # Check if there are findings and that they are not all MANUAL
         if findings and not all(finding.status == "MANUAL" for finding in findings):
@@ -65,6 +121,8 @@ def display_summary_table(
                 "Muted": [],
             }
             pass_count = fail_count = muted_count = 0
+            # Sort findings by ServiceName
+            findings.sort(key=lambda x: x.check_metadata.ServiceName)
             for finding in findings:
                 # If new service and not first, add previous row
                 if (

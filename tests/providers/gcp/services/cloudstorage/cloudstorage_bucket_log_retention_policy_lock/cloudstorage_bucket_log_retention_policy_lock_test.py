@@ -12,21 +12,26 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
         cloudstorage_client = mock.MagicMock()
         logging_client = mock.MagicMock()
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_gcp_provider(),
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
-            new=cloudstorage_client,
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
-            new=logging_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_gcp_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
+                new=cloudstorage_client,
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
+                new=logging_client,
+            ),
         ):
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock import (
                 cloudstorage_bucket_log_retention_policy_lock,
             )
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_service import (
                 Bucket,
+                RetentionPolicy,
             )
             from prowler.providers.gcp.services.logging.logging_service import Sink
 
@@ -49,7 +54,11 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
                     region=GCP_US_CENTER1_LOCATION,
                     uniform_bucket_level_access=True,
                     public=True,
-                    retention_policy={"isLocked": True},
+                    retention_policy=RetentionPolicy(
+                        retention_period=31536000,
+                        is_locked=True,
+                        effective_time=None,
+                    ),
                     project_id=GCP_PROJECT_ID,
                 )
             ]
@@ -72,21 +81,26 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
         cloudstorage_client = mock.MagicMock()
         logging_client = mock.MagicMock()
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_gcp_provider(),
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
-            new=cloudstorage_client,
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
-            new=logging_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_gcp_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
+                new=cloudstorage_client,
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
+                new=logging_client,
+            ),
         ):
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock import (
                 cloudstorage_bucket_log_retention_policy_lock,
             )
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_service import (
                 Bucket,
+                RetentionPolicy,
             )
             from prowler.providers.gcp.services.logging.logging_service import Sink
 
@@ -109,7 +123,11 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
                     region=GCP_US_CENTER1_LOCATION,
                     uniform_bucket_level_access=True,
                     public=True,
-                    retention_policy={"isLocked": False},
+                    retention_policy=RetentionPolicy(
+                        retention_period=31536000,
+                        is_locked=False,
+                        effective_time=None,
+                    ),
                     project_id=GCP_PROJECT_ID,
                 )
             ]
@@ -121,7 +139,7 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
             assert result[0].status == "FAIL"
             assert (
                 result[0].status_extended
-                == f"Log Sink Bucket {cloudstorage_client.buckets[0].name} has no Retention Policy but without Bucket Lock."
+                == f"Log Sink Bucket {cloudstorage_client.buckets[0].name} has a Retention Policy but without Bucket Lock."
             )
             assert result[0].resource_id == "example-bucket"
             assert result[0].resource_name == "example-bucket"
@@ -132,15 +150,19 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
         cloudstorage_client = mock.MagicMock()
         logging_client = mock.MagicMock()
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_gcp_provider(),
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
-            new=cloudstorage_client,
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
-            new=logging_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_gcp_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
+                new=cloudstorage_client,
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
+                new=logging_client,
+            ),
         ):
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock import (
                 cloudstorage_bucket_log_retention_policy_lock,
@@ -192,15 +214,19 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
         cloudstorage_client = mock.MagicMock()
         logging_client = mock.MagicMock()
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_gcp_provider(),
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
-            new=cloudstorage_client,
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
-            new=logging_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_gcp_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
+                new=cloudstorage_client,
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
+                new=logging_client,
+            ),
         ):
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock import (
                 cloudstorage_bucket_log_retention_policy_lock,
@@ -230,15 +256,19 @@ class TestCloudStorageBucketLogRetentionPolicyLock:
         cloudstorage_client = mock.MagicMock()
         logging_client = mock.MagicMock()
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_gcp_provider(),
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
-            new=cloudstorage_client,
-        ), mock.patch(
-            "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
-            new=logging_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_gcp_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_client",
+                new=cloudstorage_client,
+            ),
+            mock.patch(
+                "prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock.logging_client",
+                new=logging_client,
+            ),
         ):
             from prowler.providers.gcp.services.cloudstorage.cloudstorage_bucket_log_retention_policy_lock.cloudstorage_bucket_log_retention_policy_lock import (
                 cloudstorage_bucket_log_retention_policy_lock,

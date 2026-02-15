@@ -2,6 +2,7 @@ import yaml
 from mock import MagicMock
 
 from prowler.providers.azure.lib.mutelist.mutelist import AzureMutelist
+from tests.lib.outputs.fixtures.fixtures import generate_finding_output
 
 MUTELIST_FIXTURE_PATH = (
     "tests/providers/azure/lib/mutelist/fixtures/azure_mutelist.yaml"
@@ -35,11 +36,11 @@ class TestAzureMutelist:
 
         mutelist = AzureMutelist(mutelist_content=mutelist_fixture)
 
-        assert not mutelist.validate_mutelist()
+        assert len(mutelist.validate_mutelist(mutelist_fixture)) == 0
         assert mutelist.mutelist == {}
         assert mutelist.mutelist_file_path is None
 
-    def test_is_finding_muted(self):
+    def test_is_finding_muted_subscription_name(self):
         # Mutelist
         mutelist_content = {
             "Accounts": {
@@ -62,7 +63,72 @@ class TestAzureMutelist:
         finding.location = "West Europe"
         finding.status = "FAIL"
         finding.resource_name = "test_resource"
-        finding.resource_tags = []
+        finding.resource_tags = {}
         finding.subscription = "subscription_1"
 
-        assert mutelist.is_finding_muted(finding)
+        assert mutelist.is_finding_muted(
+            finding, "12345678-1234-1234-1234-123456789012"
+        )
+
+    def test_is_finding_muted_subscription_id(self):
+        # Mutelist
+        mutelist_content = {
+            "Accounts": {
+                "12345678-1234-1234-1234-123456789012": {
+                    "Checks": {
+                        "check_test": {
+                            "Regions": ["*"],
+                            "Resources": ["test_resource"],
+                        }
+                    }
+                }
+            }
+        }
+
+        mutelist = AzureMutelist(mutelist_content=mutelist_content)
+
+        finding = MagicMock
+        finding.check_metadata = MagicMock
+        finding.check_metadata.CheckID = "check_test"
+        finding.location = "West Europe"
+        finding.status = "FAIL"
+        finding.resource_name = "test_resource"
+        finding.resource_tags = {}
+        finding.subscription = "subscription_1"
+
+        assert mutelist.is_finding_muted(
+            finding, "12345678-1234-1234-1234-123456789012"
+        )
+
+    def test_mute_finding(self):
+        # Mutelist
+        mutelist_content = {
+            "Accounts": {
+                "subscription_1": {
+                    "Checks": {
+                        "check_test": {
+                            "Regions": ["*"],
+                            "Resources": ["test_resource"],
+                        }
+                    }
+                }
+            }
+        }
+
+        mutelist = AzureMutelist(mutelist_content=mutelist_content)
+
+        finding_1 = generate_finding_output(
+            check_id="service_check_test",
+            status="FAIL",
+            account_uid="subscription_1",
+            region="subscription_1",
+            resource_uid="test_resource",
+            resource_tags={},
+            muted=False,
+        )
+
+        muted_finding = mutelist.mute_finding(finding=finding_1)
+
+        assert muted_finding.status == "MUTED"
+        assert muted_finding.muted is True
+        assert muted_finding.raw["status"] == "FAIL"

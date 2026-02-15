@@ -1,4 +1,3 @@
-from re import search
 from unittest.mock import MagicMock, patch
 
 from prowler.providers.aws.services.glue.glue_service import DevEndpoint, SecurityConfig
@@ -10,12 +9,15 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
         glue_client = MagicMock
         glue_client.dev_endpoints = []
 
-        with patch(
-            "prowler.providers.aws.services.glue.glue_service.Glue",
-            new=glue_client,
-        ), patch(
-            "prowler.providers.aws.services.glue.glue_client.glue_client",
-            new=glue_client,
+        with (
+            patch(
+                "prowler.providers.aws.services.glue.glue_service.Glue",
+                new=glue_client,
+            ),
+            patch(
+                "prowler.providers.aws.services.glue.glue_client.glue_client",
+                new=glue_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.glue.glue_development_endpoints_cloudwatch_logs_encryption_enabled.glue_development_endpoints_cloudwatch_logs_encryption_enabled import (
@@ -49,12 +51,15 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
             )
         ]
 
-        with patch(
-            "prowler.providers.aws.services.glue.glue_service.Glue",
-            new=glue_client,
-        ), patch(
-            "prowler.providers.aws.services.glue.glue_client.glue_client",
-            new=glue_client,
+        with (
+            patch(
+                "prowler.providers.aws.services.glue.glue_service.Glue",
+                new=glue_client,
+            ),
+            patch(
+                "prowler.providers.aws.services.glue.glue_client.glue_client",
+                new=glue_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.glue.glue_development_endpoints_cloudwatch_logs_encryption_enabled.glue_development_endpoints_cloudwatch_logs_encryption_enabled import (
@@ -66,9 +71,9 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
 
             assert len(result) == 1
             assert result[0].status == "PASS"
-            assert search(
-                "has CloudWatch logs encryption enabled with key",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "Glue development endpoint test has CloudWatch logs encryption enabled with key key_arn."
             )
             assert result[0].resource_id == "test"
             assert result[0].resource_arn == "arn_test"
@@ -95,12 +100,15 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
             )
         ]
 
-        with patch(
-            "prowler.providers.aws.services.glue.glue_service.Glue",
-            new=glue_client,
-        ), patch(
-            "prowler.providers.aws.services.glue.glue_client.glue_client",
-            new=glue_client,
+        with (
+            patch(
+                "prowler.providers.aws.services.glue.glue_service.Glue",
+                new=glue_client,
+            ),
+            patch(
+                "prowler.providers.aws.services.glue.glue_client.glue_client",
+                new=glue_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.glue.glue_development_endpoints_cloudwatch_logs_encryption_enabled.glue_development_endpoints_cloudwatch_logs_encryption_enabled import (
@@ -112,9 +120,9 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
 
             assert len(result) == 1
             assert result[0].status == "FAIL"
-            assert search(
-                "does not have CloudWatch logs encryption enabled",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "Glue development endpoint test does not have CloudWatch logs encryption enabled."
             )
             assert result[0].resource_id == "test"
             assert result[0].resource_arn == "arn_test"
@@ -133,12 +141,15 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
         ]
         glue_client.security_configs = []
 
-        with patch(
-            "prowler.providers.aws.services.glue.glue_service.Glue",
-            new=glue_client,
-        ), patch(
-            "prowler.providers.aws.services.glue.glue_client.glue_client",
-            new=glue_client,
+        with (
+            patch(
+                "prowler.providers.aws.services.glue.glue_service.Glue",
+                new=glue_client,
+            ),
+            patch(
+                "prowler.providers.aws.services.glue.glue_client.glue_client",
+                new=glue_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.glue.glue_development_endpoints_cloudwatch_logs_encryption_enabled.glue_development_endpoints_cloudwatch_logs_encryption_enabled import (
@@ -150,9 +161,9 @@ class Test_glue_development_endpoints_cloudwatch_logs_encryption_enabled:
 
             assert len(result) == 1
             assert result[0].status == "FAIL"
-            assert search(
-                "does not have security configuration",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "Glue development endpoint test does not have security configuration."
             )
             assert result[0].resource_id == "test"
             assert result[0].resource_arn == "arn_test"

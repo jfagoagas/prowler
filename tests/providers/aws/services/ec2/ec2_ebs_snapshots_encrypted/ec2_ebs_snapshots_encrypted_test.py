@@ -32,12 +32,15 @@ class Test_ec2_ebs_snapshots_encrypted:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
-            new=EC2(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
+                new=EC2(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted import (
@@ -47,8 +50,8 @@ class Test_ec2_ebs_snapshots_encrypted:
             check = ec2_ebs_snapshots_encrypted()
             result = check.execute()
 
-            # Default snapshots
-            assert len(result) == 561
+            # Default snapshots (moto 5.1.11 creates additional default snapshots)
+            assert len(result) == 565
 
     @mock_aws
     def test_ec2_unencrypted_snapshot(self):
@@ -63,12 +66,15 @@ class Test_ec2_ebs_snapshots_encrypted:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
-            new=EC2(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
+                new=EC2(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted import (
@@ -78,8 +84,8 @@ class Test_ec2_ebs_snapshots_encrypted:
             check = ec2_ebs_snapshots_encrypted()
             results = check.execute()
 
-            # Default snapshots + 1 created
-            assert len(results) == 562
+            # Default snapshots + 1 created (moto 5.1.11 creates additional default snapshots)
+            assert len(results) == 566
 
             for snap in results:
                 if snap.resource_id == snapshot.id:
@@ -110,12 +116,15 @@ class Test_ec2_ebs_snapshots_encrypted:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
-            new=EC2(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted.ec2_client",
+                new=EC2(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.ec2.ec2_ebs_snapshots_encrypted.ec2_ebs_snapshots_encrypted import (
@@ -125,8 +134,8 @@ class Test_ec2_ebs_snapshots_encrypted:
             check = ec2_ebs_snapshots_encrypted()
             results = check.execute()
 
-            # Default snapshots + 1 created
-            assert len(results) == 562
+            # Default snapshots + 1 created (moto 5.1.11 creates additional default snapshots)
+            assert len(results) == 566
 
             for snap in results:
                 if snap.resource_id == snapshot.id:

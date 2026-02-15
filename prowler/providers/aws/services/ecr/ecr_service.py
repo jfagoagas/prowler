@@ -3,14 +3,13 @@ from json import loads
 from typing import Optional
 
 from botocore.exceptions import ClientError
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
 from prowler.providers.aws.lib.service.service import AWSService
 
 
-################################ ECR
 class ECR(AWSService):
     def __init__(self, provider):
         # Call AWSService's __init__
@@ -58,6 +57,7 @@ class ECR(AWSService):
             # The default ECR registry is assumed
             self.registries[regional_client.region] = Registry(
                 id=self.registry_id,
+                arn=f"arn:{self.audited_partition}:ecr:{regional_client.region}:{self.audited_account}:registry/{self.registry_id}",
                 region=regional_client.region,
                 repositories=regional_registry_repositories,
             )
@@ -87,6 +87,7 @@ class ECR(AWSService):
                             logger.warning(
                                 f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
                             )
+                            repository.policy = {}
 
         except Exception as error:
             if "RepositoryPolicyNotFoundException" not in str(error):
@@ -389,6 +390,7 @@ class ScanningRule(BaseModel):
 
 class Registry(BaseModel):
     id: str
+    arn: str
     region: str
     repositories: list[Repository]
     scan_type: Optional[str]

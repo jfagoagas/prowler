@@ -245,6 +245,31 @@ def create_service_dropdown(services: list) -> html.Div:
     )
 
 
+def create_provider_dropdown(providers: list) -> html.Div:
+    """
+    Dropdown to select the provider.
+    Args:
+        providers (list): List of providers.
+    Returns:
+        html.Div: Dropdown to select the provider.
+    """
+    return html.Div(
+        [
+            html.Label(
+                "Provider:", className="text-prowler-stone-900 font-bold text-sm"
+            ),
+            dcc.Dropdown(
+                id="provider-filter",
+                options=[{"label": i, "value": i} for i in providers],
+                value=["All"],
+                clearable=False,
+                multi=True,
+                style={"color": "#000000"},
+            ),
+        ],
+    )
+
+
 def create_status_dropdown(status: list) -> html.Div:
     """
     Dropdown to select the status.
@@ -284,6 +309,31 @@ def create_table_row_dropdown(table_rows: list) -> html.Div:
                 value=table_rows[0],
                 clearable=False,
                 style={"color": "#000000", "margin-right": "10px"},
+            ),
+        ],
+    )
+
+
+def create_category_dropdown(categories: list) -> html.Div:
+    """
+    Dropdown to select the category.
+    Args:
+        categories (list): List of categories.
+    Returns:
+        html.Div: Dropdown to select the category.
+    """
+    return html.Div(
+        [
+            html.Label(
+                "Category:", className="text-prowler-stone-900 font-bold text-sm"
+            ),
+            dcc.Dropdown(
+                id="category-filter",
+                options=[{"label": i, "value": i} for i in categories],
+                value=["All"],
+                clearable=False,
+                multi=True,
+                style={"color": "#000000"},
             ),
         ],
     )

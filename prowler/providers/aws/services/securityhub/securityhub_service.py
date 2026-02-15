@@ -1,7 +1,7 @@
 from typing import Optional
 
 from botocore.client import ClientError
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
@@ -27,8 +27,10 @@ class SecurityHub(AWSService):
                 if e.response["Error"]["Code"] == "InvalidAccessException":
                     self.securityhubs.append(
                         SecurityHubHub(
-                            arn=self.audited_account_arn,
-                            id="Security Hub",
+                            arn=self.get_unknown_arn(
+                                region=regional_client.region, resource_type="hub"
+                            ),
+                            id="hub/unknown",
                             status="NOT_AVAILABLE",
                             standards="",
                             integrations="",
@@ -73,8 +75,10 @@ class SecurityHub(AWSService):
                     # SecurityHub is filtered
                     self.securityhubs.append(
                         SecurityHubHub(
-                            arn=self.audited_account_arn,
-                            id="Security Hub",
+                            arn=self.get_unknown_arn(
+                                region=regional_client.region, resource_type="hub"
+                            ),
+                            id="hub/unknown",
                             status="NOT_AVAILABLE",
                             standards="",
                             integrations="",

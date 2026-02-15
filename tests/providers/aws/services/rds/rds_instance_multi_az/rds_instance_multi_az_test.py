@@ -134,7 +134,7 @@ class Test_rds_instance_multi_az:
                 id="test-cluster",
                 arn=cluster_arn,
                 endpoint="",
-                engine="aurora",
+                engine="postgres",
                 status="available",
                 public=False,
                 encrypted=False,
@@ -159,7 +159,7 @@ class Test_rds_instance_multi_az:
                 id="test-instance",
                 arn=instance_arn,
                 endpoint="",
-                engine="aurora",
+                engine="postgres",
                 engine_version="1.0.0",
                 status="available",
                 public=False,
@@ -179,12 +179,15 @@ class Test_rds_instance_multi_az:
             )
         }
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            new=rds_client,
-        ), mock.patch(
-            "prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az.rds_client",
-            new=rds_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                new=rds_client,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az.rds_client",
+                new=rds_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az import (
@@ -216,7 +219,7 @@ class Test_rds_instance_multi_az:
                 id="test-cluster",
                 arn=cluster_arn,
                 endpoint="",
-                engine="aurora",
+                engine="postgres",
                 status="available",
                 public=False,
                 encrypted=False,
@@ -241,7 +244,7 @@ class Test_rds_instance_multi_az:
                 id="test-instance",
                 arn=instance_arn,
                 endpoint="",
-                engine="aurora",
+                engine="postgres",
                 engine_version="1.0.0",
                 status="available",
                 public=False,
@@ -261,12 +264,15 @@ class Test_rds_instance_multi_az:
             )
         }
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            new=rds_client,
-        ), mock.patch(
-            "prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az.rds_client",
-            new=rds_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                new=rds_client,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az.rds_client",
+                new=rds_client,
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.rds.rds_instance_multi_az.rds_instance_multi_az import (

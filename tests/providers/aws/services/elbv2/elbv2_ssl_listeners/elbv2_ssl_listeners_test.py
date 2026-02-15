@@ -1,4 +1,3 @@
-from re import search
 from unittest import mock
 
 from boto3 import client, resource
@@ -18,15 +17,21 @@ class Test_elbv2_ssl_listeners:
     def test_elb_no_balancers(self):
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             # Test Check
@@ -86,20 +91,27 @@ class Test_elbv2_ssl_listeners:
         response = conn.create_listener(
             LoadBalancerArn=lb["LoadBalancerArn"],
             Protocol="HTTP",
+            Port=80,
             DefaultActions=[{"Type": "forward", "TargetGroupArn": target_group_arn}],
         )
 
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             from prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners import (
@@ -111,9 +123,9 @@ class Test_elbv2_ssl_listeners:
 
             assert len(result) == 1
             assert result[0].status == "FAIL"
-            assert search(
-                "has non-encrypted listeners",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "ELBv2 ALB my-lb has non-encrypted listeners."
             )
             assert result[0].resource_id == "my-lb"
             assert result[0].resource_arn == lb["LoadBalancerArn"]
@@ -164,20 +176,27 @@ class Test_elbv2_ssl_listeners:
         response = conn.create_listener(
             LoadBalancerArn=lb["LoadBalancerArn"],
             Protocol="HTTPS",
+            Port=443,
             DefaultActions=[{"Type": "forward", "TargetGroupArn": target_group_arn}],
         )
 
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             from prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners import (
@@ -189,9 +208,8 @@ class Test_elbv2_ssl_listeners:
 
             assert len(result) == 1
             assert result[0].status == "PASS"
-            assert search(
-                "has HTTPS listeners only",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended == "ELBv2 ALB my-lb has HTTPS listeners only."
             )
             assert result[0].resource_id == "my-lb"
             assert result[0].resource_arn == lb["LoadBalancerArn"]
@@ -226,6 +244,7 @@ class Test_elbv2_ssl_listeners:
         conn.create_listener(
             LoadBalancerArn=lb["LoadBalancerArn"],
             Protocol="HTTP",
+            Port=80,
             DefaultActions=[
                 {
                     "Type": "redirect",
@@ -240,15 +259,21 @@ class Test_elbv2_ssl_listeners:
 
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             from prowler.providers.aws.services.elbv2.elbv2_ssl_listeners.elbv2_ssl_listeners import (
@@ -260,9 +285,9 @@ class Test_elbv2_ssl_listeners:
 
             assert len(result) == 1
             assert result[0].status == "PASS"
-            assert search(
-                "has HTTP listener but it redirects to HTTPS",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "ELBv2 ALB my-lb has HTTP listener but it redirects to HTTPS."
             )
             assert result[0].resource_id == "my-lb"
             assert result[0].resource_arn == lb["LoadBalancerArn"]

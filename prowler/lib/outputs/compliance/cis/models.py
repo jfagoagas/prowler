@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic.v1 import BaseModel
 
 
 class AWSCISModel(BaseModel):
@@ -14,6 +16,7 @@ class AWSCISModel(BaseModel):
     Requirements_Id: str
     Requirements_Description: str
     Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
     Requirements_Attributes_Profile: str
     Requirements_Attributes_AssessmentStatus: str
     Requirements_Attributes_Description: str
@@ -22,6 +25,9 @@ class AWSCISModel(BaseModel):
     Requirements_Attributes_RemediationProcedure: str
     Requirements_Attributes_AuditProcedure: str
     Requirements_Attributes_AdditionalInformation: str
+    Requirements_Attributes_DefaultValue: Optional[str] = (
+        None  # TODO Optional for now since it's not present in the CIS 1.5, 2.0 and 3.0 AWS benchmark
+    )
     Requirements_Attributes_References: str
     Status: str
     StatusExtended: str
@@ -29,6 +35,8 @@ class AWSCISModel(BaseModel):
     ResourceName: str
     CheckId: str
     Muted: bool
+    Framework: str
+    Name: str
 
 
 class AzureCISModel(BaseModel):
@@ -38,12 +46,13 @@ class AzureCISModel(BaseModel):
 
     Provider: str
     Description: str
-    Subscription: str
+    SubscriptionId: str
     Location: str
     AssessmentDate: str
     Requirements_Id: str
     Requirements_Description: str
     Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
     Requirements_Attributes_Profile: str
     Requirements_Attributes_AssessmentStatus: str
     Requirements_Attributes_Description: str
@@ -60,6 +69,42 @@ class AzureCISModel(BaseModel):
     ResourceName: str
     CheckId: str
     Muted: bool
+    Framework: str
+    Name: str
+
+
+class M365CISModel(BaseModel):
+    """
+    M365CISModel generates a finding's output in Microsoft 365 CIS Compliance format.
+    """
+
+    Provider: str
+    Description: str
+    TenantId: str
+    Location: str
+    AssessmentDate: str
+    Requirements_Id: str
+    Requirements_Description: str
+    Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
+    Requirements_Attributes_Profile: str
+    Requirements_Attributes_AssessmentStatus: str
+    Requirements_Attributes_Description: str
+    Requirements_Attributes_RationaleStatement: str
+    Requirements_Attributes_ImpactStatement: str
+    Requirements_Attributes_RemediationProcedure: str
+    Requirements_Attributes_AuditProcedure: str
+    Requirements_Attributes_AdditionalInformation: str
+    Requirements_Attributes_DefaultValue: str
+    Requirements_Attributes_References: str
+    Status: str
+    StatusExtended: str
+    ResourceId: str
+    ResourceName: str
+    CheckId: str
+    Muted: bool
+    Framework: str
+    Name: str
 
 
 class GCPCISModel(BaseModel):
@@ -75,6 +120,7 @@ class GCPCISModel(BaseModel):
     Requirements_Id: str
     Requirements_Description: str
     Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
     Requirements_Attributes_Profile: str
     Requirements_Attributes_AssessmentStatus: str
     Requirements_Attributes_Description: str
@@ -90,6 +136,8 @@ class GCPCISModel(BaseModel):
     ResourceName: str
     CheckId: str
     Muted: bool
+    Framework: str
+    Name: str
 
 
 class KubernetesCISModel(BaseModel):
@@ -101,6 +149,40 @@ class KubernetesCISModel(BaseModel):
     Description: str
     Context: str
     Namespace: str
+    AssessmentDate: str
+    Requirements_Id: str
+    Requirements_Description: str
+    Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
+    Requirements_Attributes_Profile: Optional[str] = None
+    Requirements_Attributes_AssessmentStatus: str
+    Requirements_Attributes_Description: str
+    Requirements_Attributes_RationaleStatement: str
+    Requirements_Attributes_ImpactStatement: str
+    Requirements_Attributes_RemediationProcedure: str
+    Requirements_Attributes_AuditProcedure: str
+    Requirements_Attributes_AdditionalInformation: str
+    Requirements_Attributes_References: str
+    Requirements_Attributes_DefaultValue: str
+    Status: str
+    StatusExtended: str
+    ResourceId: str
+    ResourceName: str
+    CheckId: str
+    Muted: bool
+    Framework: str
+    Name: str
+
+
+class GithubCISModel(BaseModel):
+    """
+    GithubCISModel generates a finding's output in Github CIS Compliance format.
+    """
+
+    Provider: str
+    Description: str
+    Account_Name: str
+    Account_Id: str
     AssessmentDate: str
     Requirements_Id: str
     Requirements_Description: str
@@ -121,6 +203,87 @@ class KubernetesCISModel(BaseModel):
     ResourceName: str
     CheckId: str
     Muted: bool
+    Framework: str
+    Name: str
+
+
+class OracleCloudCISModel(BaseModel):
+    """
+    OracleCloudCISModel generates a finding's output in Oracle Cloud CIS Compliance format.
+    """
+
+    Provider: str
+    Description: str
+    TenancyId: str
+    Region: str
+    AssessmentDate: str
+    Requirements_Id: str
+    Requirements_Description: str
+    Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
+    Requirements_Attributes_Profile: str
+    Requirements_Attributes_AssessmentStatus: str
+    Requirements_Attributes_Description: str
+    Requirements_Attributes_RationaleStatement: str
+    Requirements_Attributes_ImpactStatement: str
+    Requirements_Attributes_RemediationProcedure: str
+    Requirements_Attributes_AuditProcedure: str
+    Requirements_Attributes_AdditionalInformation: str
+    Requirements_Attributes_DefaultValue: Optional[str] = None
+    Requirements_Attributes_References: str
+    Status: str
+    StatusExtended: str
+    ResourceId: str
+    ResourceName: str
+    CheckId: str
+    Muted: bool
+    Framework: str
+    Name: str
+
+
+class AlibabaCloudCISModel(BaseModel):
+    """
+    AlibabaCloudCISModel generates a finding's output in Alibaba Cloud CIS Compliance format.
+    """
+
+    Provider: str
+    Description: str
+    AccountId: str
+    Region: str
+    AssessmentDate: str
+    Requirements_Id: str
+    Requirements_Description: str
+    Requirements_Attributes_Section: str
+    Requirements_Attributes_SubSection: Optional[str] = None
+    Requirements_Attributes_Profile: str
+    Requirements_Attributes_AssessmentStatus: str
+    Requirements_Attributes_Description: str
+    Requirements_Attributes_RationaleStatement: str
+    Requirements_Attributes_ImpactStatement: str
+    Requirements_Attributes_RemediationProcedure: str
+    Requirements_Attributes_AuditProcedure: str
+    Requirements_Attributes_AdditionalInformation: str
+    Requirements_Attributes_DefaultValue: Optional[str] = None
+    Requirements_Attributes_References: str
+    Status: str
+    StatusExtended: str
+    ResourceId: str
+    ResourceName: str
+    CheckId: str
+    Muted: bool
+    Framework: str
+    Name: str
+
+
+# Compliance models alias for backwards compatibility
+CIS_AWS = AWSCISModel
+CIS_Azure = AzureCISModel
+CIS_GCP = GCPCISModel
+CIS_Kubernetes = KubernetesCISModel
+CIS_M365 = M365CISModel
+CIS_Github = GithubCISModel
+CIS_OracleCloud = OracleCloudCISModel
+CIS_AlibabaCloud = AlibabaCloudCISModel
 
 
 # TODO: Create a parent class for the common fields of CIS and have the specific classes from each provider to inherit from it.

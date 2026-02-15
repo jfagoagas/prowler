@@ -72,6 +72,7 @@ class Test_ELB_Service:
         aws_provider = set_mocked_aws_provider()
         elb = ELB(aws_provider)
         assert len(elb.loadbalancers) == 1
+        assert elb.loadbalancers[elb_arn].arn == elb_arn
         assert elb.loadbalancers[elb_arn].name == "my-lb"
         assert elb.loadbalancers[elb_arn].region == AWS_REGION_US_EAST_1
         assert elb.loadbalancers[elb_arn].scheme == "internal"
@@ -130,13 +131,14 @@ class Test_ELB_Service:
         # ELB client for this test class
         aws_provider = set_mocked_aws_provider()
         elb = ELB(aws_provider)
+        assert elb.loadbalancers[elb_arn].arn == elb_arn
         assert elb.loadbalancers[elb_arn].name == "my-lb"
         assert elb.loadbalancers[elb_arn].region == AWS_REGION_US_EAST_1
         assert elb.loadbalancers[elb_arn].scheme == "internal"
         assert elb.loadbalancers[elb_arn].access_logs
         assert elb.loadbalancers[elb_arn].cross_zone_load_balancing
         assert elb.loadbalancers[elb_arn].connection_draining
-        assert elb.loadbalancers[elb_arn].desync_mitigation_mode is None
+        assert elb.loadbalancers[elb_arn].desync_mitigation_mode == "defensive"
 
     # Test ELB Describe Tags
     @mock_aws
@@ -170,6 +172,7 @@ class Test_ELB_Service:
         # ELB client for this test class
         aws_provider = set_mocked_aws_provider()
         elb = ELB(aws_provider)
+        assert elb.loadbalancers[elb_arn].arn == elb_arn
         assert elb.loadbalancers[elb_arn].name == "my-lb"
         assert elb.loadbalancers[elb_arn].region == AWS_REGION_US_EAST_1
         assert elb.loadbalancers[elb_arn].scheme == "internal"

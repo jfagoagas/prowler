@@ -413,7 +413,7 @@ class Test_VPC_Service:
                 assert vpc.subnets[0].public
                 assert vpc.subnets[0].nat_gateway is False
                 assert vpc.subnets[0].region == AWS_REGION_US_EAST_1
-                assert vpc.subnets[0].tags is None
+                assert vpc.subnets[0].tags == []
 
     @mock_aws
     def test_vpc_subnet_with_open_nacl(self):
@@ -475,4 +475,5 @@ class Test_VPC_Service:
         vpn_conn = vpc.vpn_connections[vpn_arn]
         assert vpn_conn.id == "vpn-1234567890abcdef0"
         assert vpn_conn.region == AWS_REGION_US_EAST_1
+        assert vpn_conn.arn == vpn_arn
         assert len(vpn_conn.tunnels) == 2

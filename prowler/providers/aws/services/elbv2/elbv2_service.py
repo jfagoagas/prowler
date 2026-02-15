@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 
 from botocore.client import ClientError
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
@@ -42,6 +42,7 @@ class ELBv2(AWSService):
                         )
                     ):
                         self.loadbalancersv2[elbv2["LoadBalancerArn"]] = LoadBalancerv2(
+                            arn=elbv2["LoadBalancerArn"],
                             name=elbv2["LoadBalancerName"],
                             region=regional_client.region,
                             type=elbv2["Type"],
@@ -103,6 +104,8 @@ class ELBv2(AWSService):
             )["Attributes"]:
                 if attribute["Key"] == "routing.http.desync_mitigation_mode":
                     load_balancer[1].desync_mitigation_mode = attribute["Value"]
+                if attribute["Key"] == "load_balancing.cross_zone.enabled":
+                    load_balancer[1].cross_zone_load_balancing = attribute["Value"]
                 if attribute["Key"] == "deletion_protection.enabled":
                     load_balancer[1].deletion_protection = attribute["Value"]
                 if attribute["Key"] == "access_logs.s3.enabled":
@@ -195,6 +198,7 @@ class Listenerv2(BaseModel):
 
 
 class LoadBalancerv2(BaseModel):
+    arn: str
     name: str
     region: str
     type: str
@@ -203,6 +207,7 @@ class LoadBalancerv2(BaseModel):
     deletion_protection: Optional[str]
     dns: Optional[str]
     drop_invalid_header_fields: Optional[str]
+    cross_zone_load_balancing: Optional[str]
     listeners: Dict[str, Listenerv2] = {}
     scheme: Optional[str]
     security_groups: list[str] = []

@@ -1,37 +1,39 @@
+import sys
+
 from colorama import Fore, Style
 
-from prowler.lib.check.check import (
-    parse_checks_from_compliance_framework,
-    parse_checks_from_file,
-)
-from prowler.lib.check.models import Severity
-from prowler.lib.check.utils import (
-    recover_checks_from_provider,
-    recover_checks_from_service,
-)
+from prowler.lib.check.check import parse_checks_from_file
+from prowler.lib.check.compliance_models import Compliance
+from prowler.lib.check.models import CheckMetadata, Severity
 from prowler.lib.logger import logger
 
 
 # Generate the list of checks to execute
 def load_checks_to_execute(
-    bulk_checks_metadata: dict,
-    bulk_compliance_frameworks: dict,
-    checks_file: str,
-    check_list: list,
-    service_list: list,
-    severities: list,
-    compliance_frameworks: list,
-    categories: set,
     provider: str,
+    bulk_checks_metadata: dict = None,
+    bulk_compliance_frameworks: dict = None,
+    checks_file: str = None,
+    check_list: list = None,
+    service_list: list = None,
+    severities: list = None,
+    compliance_frameworks: list = None,
+    categories: set = None,
 ) -> set:
     """Generate the list of checks to execute based on the cloud provider and the input arguments given"""
     try:
+        # Bypass check loading for IAC provider since it uses Trivy directly
+        if provider == "iac":
+            return set()
+
         # Local subsets
         checks_to_execute = set()
         check_aliases = {}
-        check_severities = {severity.value: [] for severity in Severity}
         check_categories = {}
+        check_severities = {severity.value: [] for severity in Severity}
 
+        if not bulk_checks_metadata:
+            bulk_checks_metadata = CheckMetadata.get_bulk(provider=provider)
         # First, loop over the bulk_checks_metadata to extract the needed subsets
         for check, metadata in bulk_checks_metadata.items():
             try:
@@ -57,8 +59,24 @@ def load_checks_to_execute(
 
         # Handle if there are checks passed using -c/--checks
         if check_list:
+            # Validate that all checks exist
+            available_checks = set(bulk_checks_metadata.keys())
+            available_checks.update(check_aliases.keys())
+            invalid_checks = []
             for check_name in check_list:
-                checks_to_execute.add(check_name)
+                if check_name not in available_checks:
+                    invalid_checks.append(check_name)
+                else:
+                    checks_to_execute.add(check_name)
+
+            if invalid_checks:
+                logger.critical(
+                    f"Invalid check(s) specified: {', '.join(invalid_checks)}"
+                )
+                logger.critical(
+                    f"Please provide valid check names. Use 'prowler {provider} --list-checks' to see available checks."
+                )
+                sys.exit(1)
 
         # Handle if there are some severities passed using --severity
         elif severities:
@@ -66,10 +84,31 @@ def load_checks_to_execute(
                 checks_to_execute.update(check_severities[severity])
 
             if service_list:
-                checks_to_execute = (
-                    recover_checks_from_service(service_list, provider)
-                    & checks_to_execute
-                )
+                # Validate that all services exist
+                available_services = set()
+                for metadata in bulk_checks_metadata.values():
+                    available_services.add(metadata.ServiceName)
+
+                invalid_services = [
+                    s for s in service_list if s not in available_services
+                ]
+                if invalid_services:
+                    logger.critical(
+                        f"Invalid service(s) specified: {', '.join(invalid_services)}"
+                    )
+                    logger.critical(
+                        f"Please provide valid service names. Use 'prowler {provider} --list-services' to see available services."
+                    )
+                    sys.exit(1)
+
+                checks_from_services = set()
+                for service in service_list:
+                    service_checks = CheckMetadata.list(
+                        bulk_checks_metadata=bulk_checks_metadata,
+                        service=service,
+                    )
+                    checks_from_services.update(service_checks)
+                checks_to_execute = checks_from_services & checks_to_execute
 
         # Handle if there are checks passed using -C/--checks-file
         elif checks_file:
@@ -77,32 +116,69 @@ def load_checks_to_execute(
 
         # Handle if there are services passed using -s/--services
         elif service_list:
-            checks_to_execute = recover_checks_from_service(service_list, provider)
+            # Validate that all services exist
+            available_services = set()
+            for metadata in bulk_checks_metadata.values():
+                available_services.add(metadata.ServiceName)
+
+            invalid_services = [s for s in service_list if s not in available_services]
+            if invalid_services:
+                logger.critical(
+                    f"Invalid service(s) specified: {', '.join(invalid_services)}"
+                )
+                logger.critical(
+                    f"Please provide valid service names. Use 'prowler {provider} --list-services' to see available services."
+                )
+                sys.exit(1)
+
+            for service in service_list:
+                checks_to_execute.update(
+                    CheckMetadata.list(
+                        bulk_checks_metadata=bulk_checks_metadata,
+                        service=service,
+                    )
+                )
 
         # Handle if there are compliance frameworks passed using --compliance
         elif compliance_frameworks:
-            checks_to_execute = parse_checks_from_compliance_framework(
-                compliance_frameworks, bulk_compliance_frameworks
-            )
+            if not bulk_compliance_frameworks:
+                bulk_compliance_frameworks = Compliance.get_bulk(provider=provider)
+            for compliance_framework in compliance_frameworks:
+                checks_to_execute.update(
+                    CheckMetadata.list(
+                        bulk_compliance_frameworks=bulk_compliance_frameworks,
+                        compliance_framework=compliance_framework,
+                    )
+                )
 
         # Handle if there are categories passed using --categories
         elif categories:
+            # Validate that all categories exist
+            available_categories = set(check_categories.keys())
+            invalid_categories = [
+                c for c in categories if c not in available_categories
+            ]
+            if invalid_categories:
+                logger.critical(
+                    f"Invalid category(ies) specified: {', '.join(invalid_categories)}"
+                )
+                logger.critical(
+                    f"Please provide valid category names. Use 'prowler {provider} --list-categories' to see available categories."
+                )
+                sys.exit(1)
+
             for category in categories:
                 checks_to_execute.update(check_categories[category])
 
         # If there are no checks passed as argument
         else:
-            # Get all check modules to run with the specific provider
-            checks = recover_checks_from_provider(provider)
-
-            for check_info in checks:
-                # Recover check name from import path (last part)
-                # Format: "providers.{provider}.services.{service}.{check_name}.{check_name}"
-                check_name = check_info[0]
+            # get all checks
+            for check_name in CheckMetadata.list(
+                bulk_checks_metadata=bulk_checks_metadata
+            ):
                 checks_to_execute.add(check_name)
-
         # Only execute threat detection checks if threat-detection category is set
-        if categories != [] and "threat-detection" not in categories:
+        if (not categories or "threat-detection" not in categories) and not check_list:
             for threat_detection_check in check_categories.get("threat-detection", []):
                 checks_to_execute.discard(threat_detection_check)
 

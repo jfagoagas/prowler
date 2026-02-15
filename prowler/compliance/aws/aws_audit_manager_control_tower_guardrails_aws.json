@@ -1,5 +1,6 @@
 {
   "Framework": "AWS-Audit-Manager-Control-Tower-Guardrails",
+  "Name": "AWS Audit Manager Control Tower Guardrails",
   "Version": "",
   "Provider": "AWS",
   "Description": "AWS Control Tower is a management and governance service that you can use to navigate through the setup process and governance requirements that are involved in creating a multi-account AWS environment.",
@@ -28,7 +29,9 @@
           "Service": "ebs"
         }
       ],
-      "Checks": []
+      "Checks": [
+        "ec2_ebs_volume_snapshots_exists"
+      ]
     },
     {
       "Id": "1.0.3",
@@ -42,7 +45,8 @@
         }
       ],
       "Checks": [
-        "ec2_ebs_default_encryption"
+        "ec2_ebs_default_encryption",
+        "ec2_ebs_volume_encryption"
       ]
     },
     {
@@ -87,7 +91,9 @@
         }
       ],
       "Checks": [
-        "iam_user_mfa_enabled_console_access"
+        "iam_user_mfa_enabled_console_access",
+        "iam_user_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
       ]
     },
     {
@@ -102,7 +108,9 @@
         }
       ],
       "Checks": [
-        "iam_user_mfa_enabled_console_access"
+        "iam_user_mfa_enabled_console_access",
+        "iam_user_hardware_mfa_enabled",
+        "iam_root_mfa_enabled"
       ]
     },
     {
@@ -117,7 +125,9 @@
         }
       ],
       "Checks": [
-        "iam_root_mfa_enabled"
+        "iam_root_mfa_enabled",
+        "iam_root_hardware_mfa_enabled",
+        "iam_user_mfa_enabled_console_access"
       ]
     },
     {
@@ -162,7 +172,10 @@
         }
       ],
       "Checks": [
-        "rds_instance_no_public_access"
+        "rds_instance_no_public_access",
+        "s3_bucket_public_access",
+        "s3_bucket_public_list_acl",
+        "s3_account_level_public_access_blocks"
       ]
     },
     {
@@ -192,7 +205,8 @@
         }
       ],
       "Checks": [
-        "rds_instance_storage_encrypted"
+        "rds_instance_storage_encrypted",
+        "rds_instance_transport_encrypted"
       ]
     },
     {

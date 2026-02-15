@@ -42,7 +42,7 @@ aws:
         "amazon-elb"
     ]
   # aws.ec2_securitygroup_allow_ingress_from_internet_to_high_risk_tcp_ports
-  ec2_sg_high_risk_ports:
+  ec2_high_risk_ports:
     [
         25,
         110,
@@ -63,7 +63,10 @@ aws:
   fargate_windows_latest_version: "1.0.0"
 
   # AWS VPC Configuration (vpc_endpoint_connections_trust_boundaries, vpc_endpoint_services_allowed_principals_trust_boundaries)
-  # AWS SSM Configuration (aws.ssm_documents_set_as_public)
+  # AWS SSM Configuration (ssm_documents_set_as_public)
+  # AWS S3 Configuration (s3_bucket_cross_account_access)
+  # AWS EventBridge Configuration (eventbridge_schema_registry_cross_account_access, eventbridge_bus_cross_account_access)
+  # AWS DynamoDB Configuration (dynamodb_table_cross_account_access)
   # Single account environment: No action required. The AWS account number will be automatically added by the checks.
   # Multi account environment: Any additional trusted account number should be added as a space separated list, e.g.
   # trusted_account_ids : ["123456789012", "098765432109", "678901234567"]
@@ -312,10 +315,11 @@ aws:
   # AWS ACM Configuration
   # aws.acm_certificates_expiration_check
   days_to_expire_threshold: 7
-  # aws.acm_certificates_rsa_key_length
+  # aws.acm_certificates_with_secure_key_algorithms
   insecure_key_algorithms:
     [
       "RSA-1024",
+      "P-192",
     ]
 
   # AWS EKS Configuration
@@ -351,6 +355,11 @@ aws:
   # Minimum number of Availability Zones that an ELBv2 must be in
   elbv2_min_azs: 2
 
+  # AWS Elasticache Configuration
+  # aws.elasticache_redis_cluster_backup_enabled
+  # Minimum number of days that a Redis cluster must have backups retention period
+  minimum_snapshot_retention_period: 7
+
   # AWS Secrets Configuration
   # Patterns to ignore in the secrets checks
   secrets_ignore_patterns: []
@@ -360,12 +369,18 @@ aws:
   # Maximum number of days a secret can be unused
   max_days_secret_unused: 90
 
+  # aws.secretsmanager_secret_rotated_periodically
+  # Maximum number of days a secret should be rotated
+  max_days_secret_unrotated: 90
+
 # Azure Configuration
 azure:
   # Azure Network Configuration
   # azure.network_public_ip_shodan
   # TODO: create common config
   shodan_api_key: null
+    # Configurable minimal risk level for attack path notifications
+  defender_attack_path_minimal_risk_level: "High"
 
   # Azure App Service
   # azure.app_ensure_php_version_is_latest
@@ -375,11 +390,33 @@ azure:
   # azure.app_ensure_java_version_is_latest
   java_latest_version: "17"
 
+  # Azure SQL Server
+  # azure.sqlserver_minimal_tls_version
+  recommended_minimal_tls_versions:
+    [
+      "1.2",
+      "1.3"
+    ]
+
+  # Azure Virtual Machines
+  # azure.vm_desired_sku_size
+  # List of desired VM SKU sizes that are allowed in the organization
+  desired_vm_sku_sizes:
+    [
+      "Standard_A8_v2",
+      "Standard_DS3_v2",
+      "Standard_D4s_v3",
+    ]
+
 # GCP Configuration
 gcp:
   # GCP Compute Configuration
   # gcp.compute_public_address_shodan
   shodan_api_key: null
+  # gcp.compute_instance_group_multiple_zones
+  # Minimum number of zones a MIG should span for high availability
+  mig_min_zones: 2
+  max_unused_account_days: 30
 
 # Kubernetes Configuration
 kubernetes:
@@ -410,3 +447,37 @@ kubernetes:
       "TLS_RSA_WITH_AES_256_GCM_SHA384",
       "TLS_RSA_WITH_AES_128_GCM_SHA256",
     ]
+
+# M365 Configuration
+m365:
+  # Conditional Access Policy
+  # policy.session_controls.sign_in_frequency.frequency in hours
+  sign_in_frequency: 4
+  # Teams Settings
+  # m365.teams_external_file_sharing_restricted
+  allowed_cloud_storage_services:
+    [
+      #"allow_box",
+      #"allow_drop_box",
+      #"allow_egnyte",
+      #"allow_google_drive",
+      #"allow_share_file",
+    ]
+  # Exchange Organization Settings
+  # m365.exchange_organization_mailtips_enabled
+  recommended_mailtips_large_audience_threshold: 25 # maximum number of recipients
+  # Defender Malware Policy Settings
+  # m365.defender_malware_policy_comprehensive_attachments_filter_applied
+  # The recommended list of file extensions to be blocked, this can be changed depending on the organization needs
+  default_recommended_extensions:
+    [
+      "ace", "ani", "apk", "app", "appx", "arj", "bat", "cab", "cmd", "com",
+      "deb", "dex", "dll", "docm", "elf", "exe", "hta", "img", "iso", "jar",
+      "jnlp", "kext", "lha", "lib", "library", "lnk", "lzh", "macho", "msc",
+      "msi", "msix", "msp", "mst", "pif", "ppa", "ppam", "reg", "rev", "scf",
+      "scr", "sct", "sys", "uif", "vb", "vbe", "vbs", "vxd", "wsc", "wsf",
+      "wsh", "xll", "xz", "z"
+    ]
+  # Exchange Mailbox Settings
+  # m365.exchange_mailbox_properties_auditing_enabled
+  audit_log_age: 90 # maximum number of days to keep audit logs

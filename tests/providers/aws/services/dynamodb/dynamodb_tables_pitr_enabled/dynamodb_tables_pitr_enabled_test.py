@@ -1,4 +1,3 @@
-from re import search
 from unittest import mock
 
 from boto3 import client
@@ -20,12 +19,15 @@ class Test_dynamodb_tables_pitr_enabled:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
-            new=DynamoDB(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
+                new=DynamoDB(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled import (
@@ -58,12 +60,15 @@ class Test_dynamodb_tables_pitr_enabled:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
-            new=DynamoDB(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
+                new=DynamoDB(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled import (
@@ -75,9 +80,9 @@ class Test_dynamodb_tables_pitr_enabled:
 
             assert len(result) == 1
             assert result[0].status == "FAIL"
-            assert search(
-                "does not have point-in-time recovery enabled",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "DynamoDB table test1 does not have point-in-time recovery enabled."
             )
             assert result[0].resource_id == table["TableName"]
             assert result[0].resource_arn == table["TableArn"]
@@ -109,12 +114,15 @@ class Test_dynamodb_tables_pitr_enabled:
             [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
         )
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), mock.patch(
-            "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
-            new=DynamoDB(aws_provider),
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            mock.patch(
+                "prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled.dynamodb_client",
+                new=DynamoDB(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.dynamodb.dynamodb_tables_pitr_enabled.dynamodb_tables_pitr_enabled import (
@@ -126,8 +134,9 @@ class Test_dynamodb_tables_pitr_enabled:
 
             assert len(result) == 1
             assert result[0].status == "PASS"
-            assert search(
-                "has point-in-time recovery enabled", result[0].status_extended
+            assert (
+                result[0].status_extended
+                == "DynamoDB table test1 has point-in-time recovery enabled."
             )
             assert result[0].resource_id == table["TableName"]
             assert result[0].resource_arn == table["TableArn"]

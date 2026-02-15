@@ -1,0 +1,145 @@
+---
+title: 'Getting Started with GitHub'
+---
+
+## Prowler App
+
+<iframe width="560" height="380" src="https://www.youtube-nocookie.com/embed/9ETI84Xpu2g" title="Prowler Cloud Onboarding Github" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="1"></iframe>
+
+> Walkthrough video onboarding a GitHub Account using GitHub App.
+
+### Step 1: Access Prowler Cloud/App
+
+1. Navigate to [Prowler Cloud](https://cloud.prowler.com/) or launch [Prowler App](/user-guide/tutorials/prowler-app)
+2. Go to "Configuration" > "Cloud Providers"
+
+    ![Cloud Providers Page](/images/prowler-app/cloud-providers-page.png)
+
+3. Click "Add Cloud Provider"
+
+    ![Add a Cloud Provider](/images/prowler-app/add-cloud-provider.png)
+
+4. Select "GitHub"
+
+    ![Select GitHub](/images/providers/select-github.png)
+
+5. Add the GitHub Account ID (username or organization name) and an optional alias, then click "Next"
+
+    ![Add GitHub Account ID](/images/providers/add-github-account-id.png)
+
+### Step 2: Choose the preferred authentication method
+
+6. Choose the preferred authentication method:
+
+    ![Select auth method](/images/providers/select-auth-method.png)
+
+7. Configure the authentication method:
+
+<Tabs>
+  <Tab title="Personal Access Token">
+    ![Configure Personal Access Token](/images/providers/auth-pat.png)
+
+    For more details on how to create a Personal Access Token, see [Authentication > Personal Access Token](/user-guide/providers/github/authentication#personal-access-token-pat).
+  </Tab>
+  <Tab title="OAuth App Token">
+    ![Configure OAuth App Token](/images/providers/auth-oauth.png)
+
+    For more details on how to create an OAuth App Token, see [Authentication > OAuth App Token](/user-guide/providers/github/authentication#oauth-app-token).
+  </Tab>
+  <Tab title="GitHub App">
+    ![Configure GitHub App](/images/providers/auth-github-app.png)
+
+    For more details on how to create a GitHub App, see [Authentication > GitHub App](/user-guide/providers/github/authentication#github-app-credentials).
+  </Tab>
+</Tabs>
+## Prowler CLI
+
+### Authentication
+
+If no login method is explicitly provided, Prowler will automatically attempt to authenticate using environment variables in the following order of precedence:
+
+1. `GITHUB_PERSONAL_ACCESS_TOKEN`
+2. `GITHUB_OAUTH_APP_TOKEN`
+3. `GITHUB_APP_ID` and `GITHUB_APP_KEY` (where the key is the content of the private key file)
+
+<Note>
+Ensure the corresponding environment variables are set up before running Prowler for automatic detection when not specifying the login method.
+
+</Note>
+For more details on how to set up authentication with GitHub, see [Authentication > GitHub](/user-guide/providers/github/authentication).
+
+#### Personal Access Token (PAT)
+
+Use this method by providing a personal access token directly.
+
+```console
+prowler github --personal-access-token pat
+```
+
+#### OAuth App Token
+
+Authenticate using an OAuth app token.
+
+```console
+prowler github --oauth-app-token oauth_token
+```
+
+#### GitHub App Credentials
+
+Use GitHub App credentials by specifying the App ID and the private key path.
+
+```console
+prowler github --github-app-id app_id --github-app-key-path app_key_path
+```
+
+### Scan Scoping
+
+Scan scoping controls which repositories and organizations Prowler includes in a security assessment. By default, Prowler scans all repositories accessible to the authenticated user or organization. To limit the scan to specific repositories or organizations, use the following flags.
+
+#### Scanning Specific Repositories
+
+To restrict the scan to one or more repositories, use the `--repository` flag followed by the repository name(s) in `owner/repo-name` format:
+
+```console
+prowler github --repository owner/repo-name
+```
+
+To scan multiple repositories, specify them as space-separated arguments:
+
+```console
+prowler github --repository owner/repo-name-1 owner/repo-name-2
+```
+
+#### Scanning Specific Organizations
+
+To restrict the scan to one or more organizations or user accounts, use the `--organization` flag:
+
+```console
+prowler github --organization my-organization
+```
+
+To scan multiple organizations, specify them as space-separated arguments:
+
+```console
+prowler github --organization org-1 org-2
+```
+
+#### Scanning Specific Repositories Within an Organization
+
+To scan specific repositories within an organization, combine the `--organization` and `--repository` flags. The `--organization` flag qualifies unqualified repository names automatically:
+
+```console
+prowler github --organization my-organization --repository my-repo
+```
+
+This scans only `my-organization/my-repo`. Fully qualified repository names (`owner/repo-name`) are also supported alongside `--organization`:
+
+```console
+prowler github --organization my-org --repository my-repo other-owner/other-repo
+```
+
+In this case, `my-repo` is qualified as `my-org/my-repo`, while `other-owner/other-repo` is used as-is.
+
+<Note>
+The `--repository` and `--organization` flags can be combined with any authentication method.
+</Note>

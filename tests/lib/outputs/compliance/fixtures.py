@@ -8,27 +8,29 @@ from prowler.lib.check.compliance_models import (
     ENS_Requirement_Attribute_Tipos,
     Generic_Compliance_Requirement_Attribute,
     ISO27001_2013_Requirement_Attribute,
+    KISA_ISMSP_Requirement_Attribute,
     Mitre_Requirement,
     Mitre_Requirement_Attribute_AWS,
     Mitre_Requirement_Attribute_Azure,
     Mitre_Requirement_Attribute_GCP,
-    KISA_ISMSP_Requirement_Attribute,
+    Prowler_ThreatScore_Requirement_Attribute,
 )
 
-CIS_1_4_AWS_NAME = "cis_1.4_aws"
 CIS_1_4_AWS = Compliance(
     Framework="CIS",
+    Name="CIS Amazon Web Services Foundations Benchmark v1.4.0",
     Provider="AWS",
     Version="1.4",
     Description="The CIS Benchmark for CIS Amazon Web Services Foundations Benchmark, v1.4.0, Level 1 and 2 provides prescriptive guidance for configuring security options for a subset of Amazon Web Services. It has an emphasis on foundational, testable, and architecture agnostic settings",
     Requirements=[
         Compliance_Requirement(
-            Checks=["test-check-id"],
+            Checks=["service_test_check_id"],
             Id="2.1.3",
             Description="Ensure MFA Delete is enabled on S3 buckets",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2.1. Simple Storage Service (S3)",
+                    Section="2. Storage",
+                    SubSection="2.1. Simple Storage Service (S3)",
                     Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="Once MFA Delete is enabled on your sensitive and classified S3 bucket it requires the user to have two forms of authentication.",
@@ -47,7 +49,8 @@ CIS_1_4_AWS = Compliance(
             Description="Ensure MFA Delete is enabled on S3 buckets",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2.1. Simple Storage Service (S3)",
+                    Section="2. Storage",
+                    SubSection="2.1. Simple Storage Service (S3)",
                     Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="Once MFA Delete is enabled on your sensitive and classified S3 bucket it requires the user to have two forms of authentication.",
@@ -62,20 +65,22 @@ CIS_1_4_AWS = Compliance(
         ),
     ],
 )
-CIS_2_0_AZURE_NAME = "cis_2.0_azure"
+
 CIS_2_0_AZURE = Compliance(
     Framework="CIS",
+    Name="CIS Microsoft Azure Foundations Benchmark v2.0.0",
     Provider="Azure",
     Version="2.0",
     Description="The CIS Azure Foundations Benchmark provides prescriptive guidance for configuring security options for a subset of Azure with an emphasis on foundational, testable, and architecture agnostic settings.",
     Requirements=[
         Compliance_Requirement(
-            Checks=["test-check-id"],
+            Checks=["service_test_check_id"],
             Id="2.1.3",
             Description="Ensure That Microsoft Defender for Databases Is Set To 'On'",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2.1 Microsoft Defender for Cloud",
+                    Section="2. Defender",
+                    SubSection="2.1 Microsoft Defender for Cloud",
                     Profile="Level 2",
                     AssessmentStatus="Manual",
                     Description="Turning on Microsoft Defender for Databases enables threat detection for the instances running your database software. This provides threat intelligence, anomaly detection, and behavior analytics in the Azure Microsoft Defender for Cloud. Instead of being enabled on services like Platform as a Service (PaaS), this implementation will run within your instances as Infrastructure as a Service (IaaS) on the Operating Systems hosting your databases.",
@@ -95,7 +100,8 @@ CIS_2_0_AZURE = Compliance(
             Description="Ensure That Microsoft Defender for Databases Is Set To 'On'",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2.1 Microsoft Defender for Cloud",
+                    Section="2. Defender",
+                    SubSection="2.1 Microsoft Defender for Cloud",
                     Profile="Level 2",
                     AssessmentStatus="Manual",
                     Description="Turning on Microsoft Defender for Databases enables threat detection for the instances running your database software. This provides threat intelligence, anomaly detection, and behavior analytics in the Azure Microsoft Defender for Cloud. Instead of being enabled on services like Platform as a Service (PaaS), this implementation will run within your instances as Infrastructure as a Service (IaaS) on the Operating Systems hosting your databases.",
@@ -111,9 +117,10 @@ CIS_2_0_AZURE = Compliance(
         ),
     ],
 )
-CIS_2_0_GCP_NAME = "cis_2.0_gcp"
+
 CIS_2_0_GCP = Compliance(
     Framework="CIS",
+    Name="CIS Google Cloud Platform Foundation Benchmark v2.0.0",
     Provider="GCP",
     Version="2.0",
     Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Google Cloud Computing Platform",
@@ -124,7 +131,8 @@ CIS_2_0_GCP = Compliance(
             Description="Ensure That Microsoft Defender for Databases Is Set To 'On'",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2. Logging and Monitoring",
+                    Section="2. Logging",
+                    SubSection="2.1. Logging and Monitoring",
                     Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="GCP Cloud Asset Inventory is services that provides a historical view of GCP resources and IAM policies through a time-series database. The information recorded includes metadata on Google Cloud resources, metadata on policies set on Google Cloud projects or resources, and runtime information gathered within a Google Cloud resource.",
@@ -143,7 +151,7 @@ CIS_2_0_GCP = Compliance(
             Description="Ensure That Microsoft Defender for Databases Is Set To 'On'",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="2. Logging and Monitoring",
+                    Section="2. Logging",
                     Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="GCP Cloud Asset Inventory is services that provides a historical view of GCP resources and IAM policies through a time-series database. The information recorded includes metadata on Google Cloud resources, metadata on policies set on Google Cloud projects or resources, and runtime information gathered within a Google Cloud resource.",
@@ -158,9 +166,10 @@ CIS_2_0_GCP = Compliance(
         ),
     ],
 )
-CIS_1_8_KUBERNETES_NAME = "cis_2.0_kubernetes"
+
 CIS_1_8_KUBERNETES = Compliance(
     Framework="CIS",
+    Name="CIS Kubernetes Benchmark v1.8.0",
     Provider="Kubernetes",
     Version="1.8",
     Description="This CIS Kubernetes Benchmark provides prescriptive guidance for establishing a secure configuration posture for Kubernetes v1.27.",
@@ -171,8 +180,9 @@ CIS_1_8_KUBERNETES = Compliance(
             Description="Ensure that the controller manager pod specification file permissions are set to 600 or more restrictive",
             Attributes=[
                 CIS_Requirement_Attribute(
-                    Section="1.1 Control Plane Node Configuration Files",
-                    Profile="Level 1 - Master Node",
+                    Section="1. Control Plane",
+                    SubSection="1.1 Control Plane Node Configuration Files",
+                    Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="Ensure that the controller manager pod specification file has permissions of `600` or more restrictive.",
                     RationaleStatement="The controller manager pod specification file controls various parameters that set the behavior of the Controller Manager on the master node. You should restrict its file permissions to maintain the integrity of the file. The file should be writable by only the administrators on the system.",
@@ -192,7 +202,7 @@ CIS_1_8_KUBERNETES = Compliance(
             Attributes=[
                 CIS_Requirement_Attribute(
                     Section="1.1 Control Plane Node Configuration Files",
-                    Profile="Level 1 - Master Node",
+                    Profile="Level 1",
                     AssessmentStatus="Automated",
                     Description="Ensure that the controller manager pod specification file has permissions of `600` or more restrictive.",
                     RationaleStatement="The controller manager pod specification file controls various parameters that set the behavior of the Controller Manager on the master node. You should restrict its file permissions to maintain the integrity of the file. The file should be writable by only the administrators on the system.",
@@ -207,9 +217,10 @@ CIS_1_8_KUBERNETES = Compliance(
         ),
     ],
 )
-CIS_1_5_AWS_NAME = "cis_1.5_aws"
+
 CIS_1_5_AWS = Compliance(
     Framework="CIS",
+    Name="CIS Amazon Web Services Foundations Benchmark v1.5.0",
     Provider="AWS",
     Version="1.5",
     Description="The CIS Amazon Web Services Foundations Benchmark provides prescriptive guidance for configuring security options for a subset of Amazon Web Services with an emphasis on foundational, testable, and architecture agnostic settings.",
@@ -236,9 +247,61 @@ CIS_1_5_AWS = Compliance(
     ],
 )
 
-MITRE_ATTACK_AWS_NAME = "mitre_attack_aws"
+CIS_4_0_M365 = Compliance(
+    Framework="CIS",
+    Name="CIS Microsoft 365 Foundations Benchmark v4.0.0",
+    Provider="M365",
+    Version="4.0",
+    Description="The CIS Microsoft 365 Foundations Benchmark provides prescriptive guidance for configuring security options for Microsoft 365 with an emphasis on foundational, testable, and architecture agnostic settings.",
+    Requirements=[
+        Compliance_Requirement(
+            Checks=[
+                "mfa_delete_enabled",
+            ],
+            Id="2.1.3",
+            Description="Ensure MFA Delete is enabled on S3 buckets",
+            Attributes=[
+                CIS_Requirement_Attribute(
+                    Section="2.1. Simple Storage Service (S3)",
+                    Profile="Level 1",
+                    AssessmentStatus="Automated",
+                    Description="Once MFA Delete is enabled on your sensitive and classified S3 bucket it requires the user to have two forms of authentication.",
+                    RationaleStatement="Adding MFA delete to an S3 bucket, requires additional authentication when you change the version state of your bucket or you delete and object version adding another layer of security in the event your security credentials are compromised or unauthorized access is granted.",
+                    ImpactStatement="",
+                    RemediationProcedure="Perform the steps below to enable MFA delete on an S3 bucket.Note:-You cannot enable MFA Delete using the AWS Management Console. You must use the AWS CLI or API.-You must use your 'root' account to enable MFA Delete on S3 buckets.**From Command line:**1. Run the s3api put-bucket-versioning command aws s3api put-bucket-versioning --profile my-root-profile --bucket Bucket_Name --versioning-configuration Status=Enabled,MFADelete=Enabled --mfa arn:aws:iam::aws_account_id:mfa/root-account-mfa-device passcode",
+                    AuditProcedure="Perform the steps below to confirm MFA delete is configured on an S3 Bucket**From Console:**1. Login to the S3 console at `https://console.aws.amazon.com/s3/`2. Click the `Check` box next to the Bucket name you want to confirm3. In the window under `Properties`4. Confirm that Versioning is `Enabled`5. Confirm that MFA Delete is `Enabled`**From Command Line:**1. Run the `get-bucket-versioning aws s3api get-bucket-versioning --bucket my-bucket Output example: <VersioningConfiguration xmlns=`http://s3.amazonaws.com/doc/2006-03-01/`>  <Status>Enabled</Status> <MfaDelete>Enabled</MfaDelete></VersioningConfiguration>\ If the Console or the CLI output does not show Versioning and MFA Delete `enabled` refer to the remediation below.",
+                    AdditionalInformation="",
+                    References="https://docs.aws.amazon.com/AmazonS3/latest/dev/Versioning.html#MultiFactorAuthenticationDelete:https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMFADelete.html:https://aws.amazon.com/blogs/security/securing-access-to-aws-using-mfa-part-3/:https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_lost-or-broken.html",
+                    DefaultValue="By default, MFA Delete is not enabled on S3 buckets.",
+                )
+            ],
+        ),
+        Compliance_Requirement(
+            Checks=[],
+            Id="2.1.4",
+            Description="Ensure that the controller manager pod specification file permissions are set to 600 or more restrictive",
+            Attributes=[
+                CIS_Requirement_Attribute(
+                    Section="1.1 Control Plane Node Configuration Files",
+                    Profile="Level 1",
+                    AssessmentStatus="Automated",
+                    Description="Ensure that the controller manager pod specification file has permissions of `600` or more restrictive.",
+                    RationaleStatement="The controller manager pod specification file controls various parameters that set the behavior of the Controller Manager on the master node. You should restrict its file permissions to maintain the integrity of the file. The file should be writable by only the administrators on the system.",
+                    ImpactStatement="",
+                    RemediationProcedure="Run the below command (based on the file location on your system) on the Control Plane node. For example,  ``` chmod 600 /etc/kubernetes/manifests/kube-controller-manager.yaml ```",
+                    AuditProcedure="Run the below command (based on the file location on your system) on the Control Plane node. For example,  ``` stat -c %a /etc/kubernetes/manifests/kube-controller-manager.yaml ```  Verify that the permissions are `600` or more restrictive.",
+                    AdditionalInformation="",
+                    References="https://kubernetes.io/docs/admin/kube-apiserver/",
+                    DefaultValue="By default, the `kube-controller-manager.yaml` file has permissions of `640`.",
+                )
+            ],
+        ),
+    ],
+)
+
 MITRE_ATTACK_AWS = Compliance(
     Framework="MITRE-ATTACK",
+    Name="MITRE ATT&CK compliance framework",
     Provider="AWS",
     Version="",
     Description="MITRE ATT&CK® is a globally-accessible knowledge base of adversary tactics and techniques based on real-world observations. The ATT&CK knowledge base is used as a foundation for the development of specific threat models and methodologies in the private sector, in government, and in the cybersecurity product and service community.",
@@ -293,9 +356,10 @@ MITRE_ATTACK_AWS = Compliance(
         ),
     ],
 )
-MITRE_ATTACK_AZURE_NAME = "mitre_attack_azure"
+
 MITRE_ATTACK_AZURE = Compliance(
     Framework="MITRE-ATTACK",
+    Name="MITRE ATT&CK compliance framework",
     Provider="Azure",
     Version="",
     Description="MITRE ATT&CK® is a globally-accessible knowledge base of adversary tactics and techniques based on real-world observations. The ATT&CK knowledge base is used as a foundation for the development of specific threat models and methodologies in the private sector, in government, and in the cybersecurity product and service community.",
@@ -368,9 +432,10 @@ MITRE_ATTACK_AZURE = Compliance(
         ),
     ],
 )
-MITRE_ATTACK_GCP_NAME = "mitre_attack_gcp"
+
 MITRE_ATTACK_GCP = Compliance(
     Framework="MITRE-ATTACK",
+    Name="MITRE ATT&CK compliance framework",
     Provider="GCP",
     Version="",
     Description="MITRE ATT&CK® is a globally-accessible knowledge base of adversary tactics and techniques based on real-world observations. The ATT&CK knowledge base is used as a foundation for the development of specific threat models and methodologies in the private sector, in government, and in the cybersecurity product and service community.",
@@ -422,9 +487,10 @@ MITRE_ATTACK_GCP = Compliance(
         ),
     ],
 )
-ENS_RD2022_AWS_NAME = "ens_rd2022_aws"
+
 ENS_RD2022_AWS = Compliance(
     Framework="ENS",
+    Name="ENS RD 311/2022 - Categoría Alta",
     Provider="AWS",
     Version="RD2022",
     Description="The accreditation scheme of the ENS (National Security Scheme) has been developed by the Ministry of Finance and Public Administrations and the CCN (National Cryptological Center). This includes the basic principles and minimum requirements necessary for the adequate protection of information.",
@@ -469,17 +535,114 @@ ENS_RD2022_AWS = Compliance(
         ),
     ],
 )
-NOT_PRESENT_COMPLIANCE_NAME = "not_present_compliance_name"
+
+ENS_RD2022_AZURE = Compliance(
+    Framework="ENS",
+    Name="ENS RD 311/2022 - Categoría Alta",
+    Provider="Azure",
+    Version="RD2022",
+    Description="The accreditation scheme of the ENS (National Security Scheme) has been developed by the Ministry of Finance and Public Administrations and the CCN (National Cryptological Center). This includes the basic principles and minimum requirements necessary for the adequate protection of information.",
+    Requirements=[
+        Compliance_Requirement(
+            Id="op.exp.8.azure.ct.3",
+            Description="Registro de actividad",
+            Name=None,
+            Attributes=[
+                ENS_Requirement_Attribute(
+                    IdGrupoControl="op.exp.8",
+                    Marco="operacional",
+                    Categoria="explotación",
+                    DescripcionControl="Habilitar la validación de archivos en todos los trails, evitando así que estos se vean modificados o eliminados.",
+                    Tipo=ENS_Requirement_Attribute_Tipos.requisito,
+                    Nivel=ENS_Requirement_Attribute_Nivel.alto,
+                    Dimensiones=["trazabilidad"],
+                    ModoEjecucion="automático",
+                    Dependencias=[],
+                )
+            ],
+            Checks=["cloudtrail_log_file_validation_enabled"],
+        ),
+        Compliance_Requirement(
+            Id="op.exp.8.azure.ct.4",
+            Description="Registro de actividad",
+            Name=None,
+            Attributes=[
+                ENS_Requirement_Attribute(
+                    IdGrupoControl="op.exp.8",
+                    Marco="operacional",
+                    Categoria="explotación",
+                    DescripcionControl="Habilitar la validación de archivos en todos los trails, evitando así que estos se vean modificados o eliminados.",
+                    Tipo=ENS_Requirement_Attribute_Tipos.requisito,
+                    Nivel=ENS_Requirement_Attribute_Nivel.alto,
+                    Dimensiones=["trazabilidad"],
+                    ModoEjecucion="automático",
+                    Dependencias=[],
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+ENS_RD2022_GCP = Compliance(
+    Framework="ENS",
+    Name="ENS RD 311/2022 - Categoría Alta",
+    Provider="GCP",
+    Version="RD2022",
+    Description="The accreditation scheme of the ENS (National Security Scheme) has been developed by the Ministry of Finance and Public Administrations and the CCN (National Cryptological Center). This includes the basic principles and minimum requirements necessary for the adequate protection of information.",
+    Requirements=[
+        Compliance_Requirement(
+            Id="op.exp.8.gcp.ct.3",
+            Description="Registro de actividad",
+            Name=None,
+            Attributes=[
+                ENS_Requirement_Attribute(
+                    IdGrupoControl="op.exp.8",
+                    Marco="operacional",
+                    Categoria="explotación",
+                    DescripcionControl="Habilitar la validación de archivos en todos los trails, evitando así que estos se vean modificados o eliminados.",
+                    Tipo=ENS_Requirement_Attribute_Tipos.requisito,
+                    Nivel=ENS_Requirement_Attribute_Nivel.alto,
+                    Dimensiones=["trazabilidad"],
+                    ModoEjecucion="automático",
+                    Dependencias=[],
+                )
+            ],
+            Checks=["cloudtrail_log_file_validation_enabled"],
+        ),
+        Compliance_Requirement(
+            Id="op.exp.8.gcp.ct.4",
+            Description="Registro de actividad",
+            Name=None,
+            Attributes=[
+                ENS_Requirement_Attribute(
+                    IdGrupoControl="op.exp.8",
+                    Marco="operacional",
+                    Categoria="explotación",
+                    DescripcionControl="Habilitar la validación de archivos en todos los trails, evitando así que estos se vean modificados o eliminados.",
+                    Tipo=ENS_Requirement_Attribute_Tipos.requisito,
+                    Nivel=ENS_Requirement_Attribute_Nivel.alto,
+                    Dimensiones=["trazabilidad"],
+                    ModoEjecucion="automático",
+                    Dependencias=[],
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+
 NOT_PRESENT_COMPLIANCE = Compliance(
     Framework="NOT_EXISTENT",
+    Name="NOT_EXISTENT",
     Provider="NOT_EXISTENT",
     Version="NOT_EXISTENT",
     Description="NOT_EXISTENT",
     Requirements=[],
 )
-AWS_WELL_ARCHITECTED_NAME = "aws_well_architected_framework_security_pillar_aws"
+
 AWS_WELL_ARCHITECTED = Compliance(
     Framework="AWS-Well-Architected-Framework-Security-Pillar",
+    Name="AWS Well-Architected Framework Security Pillar",
     Provider="AWS",
     Version="",
     Description="Best Practices for AWS Well-Architected Framework Security Pillar. The focus of this framework is the security pillar of the AWS Well-Architected Framework. It provides guidance to help you apply best practices, current recommendations in the design, delivery, and maintenance of secure AWS workloads.",
@@ -524,32 +687,10 @@ AWS_WELL_ARCHITECTED = Compliance(
         ),
     ],
 )
-AWISO27001_2013_AWS_NAME = "iso27001_2013_aws"
+
 ISO27001_2013_AWS = Compliance(
     Framework="ISO27001",
-    Provider="AWS",
-    Version="2013",
-    Description="ISO (the International Organization for Standardization) and IEC (the International Electrotechnical Commission) form the specialized system for worldwide standardization. National bodies that are members of ISO or IEC participate in the development of International Standards through technical committees established by the respective organization to deal with particular fields of technical activity. ISO and IEC technical committees collaborate in fields of mutual interest. Other international organizations, governmental and non-governmental, in liaison with ISO and IEC, also take part in the work.",
-    Requirements=[
-        Compliance_Requirement(
-            Id="A.10.1",
-            Description="Setup Encryption at rest for RDS instances",
-            Name="Cryptographic Controls",
-            Attributes=[
-                ISO27001_2013_Requirement_Attribute(
-                    Category="A.10 Cryptography",
-                    Objetive_ID="A.10.1",
-                    Objetive_Name="Cryptographic Controls",
-                    Check_Summary="Setup Encryption at rest for RDS instances",
-                )
-            ],
-            Checks=["rds_instance_storage_encrypted"],
-        ),
-    ],
-)
-ISO27001_2013_AWS_NAME = "iso27001_2013_aws"
-ISO27001_2013_AWS = Compliance(
-    Framework="ISO27001",
+    Name="ISO/IEC 27001 Information Security Management Standard 2013",
     Provider="AWS",
     Version="2013",
     Description="ISO (the International Organization for Standardization) and IEC (the International Electrotechnical Commission) form the specialized system for worldwide standardization. National bodies that are members of ISO or IEC participate in the development of International Standards through technical committees established by the respective organization to deal with particular fields of technical activity. ISO and IEC technical committees collaborate in fields of mutual interest. Other international organizations, governmental and non-governmental, in liaison with ISO and IEC, also take part in the work.",
@@ -584,9 +725,10 @@ ISO27001_2013_AWS = Compliance(
         ),
     ],
 )
-NIST_800_53_REVISION_4_AWS_NAME = "nist_800_53_revision_4_aws"
+
 NIST_800_53_REVISION_4_AWS = Compliance(
     Framework="NIST-800-53-Revision-4",
+    Name="National Institute of Standards and Technology (NIST) 800-53 Revision 4",
     Provider="AWS",
     Version="",
     Description="NIST 800-53 is a regulatory standard that defines the minimum baseline of security controls for all U.S. federal information systems except those related to national security. The controls defined in this standard are customizable and address a diverse set of security and privacy requirements.",
@@ -633,9 +775,10 @@ NIST_800_53_REVISION_4_AWS = Compliance(
         ),
     ],
 )
-KISA_ISMSP_AWS_NAME = "kisa_isms-p_2023_aws"
+
 KISA_ISMSP_AWS = Compliance(
     Framework="KISA-ISMS-P",
+    Name="KISA ISMS compliance framework 2023",
     Provider="AWS",
     Version="2023",
     Description="The ISMS-P certification, established by KISA Korea Internet & Security Agency",
@@ -697,6 +840,182 @@ KISA_ISMSP_AWS = Compliance(
                         "Case 1: Insufficient authentication when accessing information systems externally.",
                         "Case 2: No limitation on login failure attempts.",
                     ],
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+
+PROWLER_THREATSCORE_AWS = Compliance(
+    Framework="ProwlerThreatScore",
+    Name="Prowler ThreatScore Compliance Framework for AWS",
+    Version="1.0",
+    Provider="AWS",
+    Description="Prowler ThreatScore Compliance Framework for AWS ensures that the AWS account is compliant taking into account four main pillars: Identity and Access Management, Attack Surface, Forensic Readiness and Encryption",
+    Requirements=[
+        Compliance_Requirement(
+            Id="1.1.1",
+            Description="Ensure MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="MFA enabled for 'root'",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account holds the highest level of privileges within an AWS account. Enabling Multi-Factor Authentication (MFA) enhances security by adding an additional layer of protection beyond just a username and password. With MFA activated, users must provide their credentials (username and password) along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="Enabling MFA enhances console security by requiring the authenticating user to both possess a time-sensitive key-generating device and have knowledge of their credentials.",
+                    LevelOfRisk=5,
+                    Weight=1000,
+                )
+            ],
+            Checks=[
+                "iam_root_mfa_enabled",
+            ],
+        ),
+        Compliance_Requirement(
+            Id="1.1.2",
+            Description="Ensure hardware MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="CloudTrail logging enabled",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account in AWS has the highest level of privileges. Multi-Factor Authentication (MFA) enhances security by adding an extra layer of protection beyond a username and password. When MFA is enabled, users must enter their credentials along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="A hardware MFA has a smaller attack surface compared to a virtual MFA. Unlike a virtual MFA, which relies on a mobile device that may be vulnerable to malware or compromise, a hardware MFA operates independently, reducing exposure to potential security threats.",
+                    LevelOfRisk=3,
+                    Weight=10,
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+
+PROWLER_THREATSCORE_AZURE = Compliance(
+    Framework="ProwlerThreatScore",
+    Name="Prowler ThreatScore Compliance Framework for Azure",
+    Version="1.0",
+    Provider="Azure",
+    Description="Prowler ThreatScore Compliance Framework for Azure ensures that the Azure account is compliant taking into account four main pillars: Identity and Access Management, Attack Surface, Forensic Readiness and Encryption",
+    Requirements=[
+        Compliance_Requirement(
+            Id="1.1.1",
+            Description="Ensure MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="MFA enabled for 'root'",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account holds the highest level of privileges within an AWS account. Enabling Multi-Factor Authentication (MFA) enhances security by adding an additional layer of protection beyond just a username and password. With MFA activated, users must provide their credentials (username and password) along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="Enabling MFA enhances console security by requiring the authenticating user to both possess a time-sensitive key-generating device and have knowledge of their credentials.",
+                    LevelOfRisk=5,
+                    Weight=1000,
+                )
+            ],
+            Checks=[
+                "iam_root_mfa_enabled",
+            ],
+        ),
+        Compliance_Requirement(
+            Id="1.1.2",
+            Description="Ensure hardware MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="CloudTrail logging enabled",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account in AWS has the highest level of privileges. Multi-Factor Authentication (MFA) enhances security by adding an extra layer of protection beyond a username and password. When MFA is enabled, users must enter their credentials along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="A hardware MFA has a smaller attack surface compared to a virtual MFA. Unlike a virtual MFA, which relies on a mobile device that may be vulnerable to malware or compromise, a hardware MFA operates independently, reducing exposure to potential security threats.",
+                    LevelOfRisk=3,
+                    Weight=10,
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+
+PROWLER_THREATSCORE_GCP = Compliance(
+    Framework="ProwlerThreatScore",
+    Name="Prowler ThreatScore Compliance Framework for GCP",
+    Version="1.0",
+    Provider="GCP",
+    Description="Prowler ThreatScore Compliance Framework for GCP ensures that the GCP account is compliant taking into account four main pillars: Identity and Access Management, Attack Surface, Forensic Readiness and Encryption",
+    Requirements=[
+        Compliance_Requirement(
+            Id="1.1.1",
+            Description="Ensure MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="MFA enabled for 'root'",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account holds the highest level of privileges within an AWS account. Enabling Multi-Factor Authentication (MFA) enhances security by adding an additional layer of protection beyond just a username and password. With MFA activated, users must provide their credentials (username and password) along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="Enabling MFA enhances console security by requiring the authenticating user to both possess a time-sensitive key-generating device and have knowledge of their credentials.",
+                    LevelOfRisk=5,
+                    Weight=1000,
+                )
+            ],
+            Checks=[
+                "iam_root_mfa_enabled",
+            ],
+        ),
+        Compliance_Requirement(
+            Id="1.1.2",
+            Description="Ensure hardware MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="CloudTrail logging enabled",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account in AWS has the highest level of privileges. Multi-Factor Authentication (MFA) enhances security by adding an extra layer of protection beyond a username and password. When MFA is enabled, users must enter their credentials along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="A hardware MFA has a smaller attack surface compared to a virtual MFA. Unlike a virtual MFA, which relies on a mobile device that may be vulnerable to malware or compromise, a hardware MFA operates independently, reducing exposure to potential security threats.",
+                    LevelOfRisk=3,
+                    Weight=10,
+                )
+            ],
+            Checks=[],
+        ),
+    ],
+)
+
+PROWLER_THREATSCORE_M365 = Compliance(
+    Framework="ProwlerThreatScore",
+    Name="Prowler ThreatScore Compliance Framework for Microsoft 365",
+    Version="1.0",
+    Provider="M365",
+    Description="Prowler ThreatScore Compliance Framework for M365 ensures that the M365 account is compliant taking into account four main pillars: Identity and Access Management, Attack Surface, Forensic Readiness and Encryption",
+    Requirements=[
+        Compliance_Requirement(
+            Id="1.1.1",
+            Description="Ensure MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="MFA enabled for 'root'",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account holds the highest level of privileges within an AWS account. Enabling Multi-Factor Authentication (MFA) enhances security by adding an additional layer of protection beyond just a username and password. With MFA activated, users must provide their credentials (username and password) along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="Enabling MFA enhances console security by requiring the authenticating user to both possess a time-sensitive key-generating device and have knowledge of their credentials.",
+                    LevelOfRisk=5,
+                    Weight=1000,
+                )
+            ],
+            Checks=[
+                "iam_root_mfa_enabled",
+            ],
+        ),
+        Compliance_Requirement(
+            Id="1.1.2",
+            Description="Ensure hardware MFA is enabled for the 'root' user account",
+            Attributes=[
+                Prowler_ThreatScore_Requirement_Attribute(
+                    Title="CloudTrail logging enabled",
+                    Section="1. IAM",
+                    SubSection="1.1 Authentication",
+                    AttributeDescription="The root user account in AWS has the highest level of privileges. Multi-Factor Authentication (MFA) enhances security by adding an extra layer of protection beyond a username and password. When MFA is enabled, users must enter their credentials along with a unique authentication code generated by their AWS MFA device when signing into an AWS website.",
+                    AdditionalInformation="A hardware MFA has a smaller attack surface compared to a virtual MFA. Unlike a virtual MFA, which relies on a mobile device that may be vulnerable to malware or compromise, a hardware MFA operates independently, reducing exposure to potential security threats.",
+                    LevelOfRisk=3,
+                    Weight=10,
                 )
             ],
             Checks=[],

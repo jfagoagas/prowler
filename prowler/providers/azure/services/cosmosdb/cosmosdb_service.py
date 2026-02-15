@@ -1,7 +1,7 @@
 from dataclasses import dataclass
+from typing import List
 
 from azure.mgmt.cosmosdb import CosmosDBManagementClient
-from azure.mgmt.cosmosdb.models import PrivateEndpointConnection
 
 from prowler.lib.logger import logger
 from prowler.providers.azure.azure_provider import AzureProvider
@@ -30,8 +30,20 @@ class CosmosDB(AzureService):
                             type=account.type,
                             tags=account.tags,
                             is_virtual_network_filter_enabled=account.is_virtual_network_filter_enabled,
-                            private_endpoint_connections=account.private_endpoint_connections,
-                            disable_local_auth=account.disable_local_auth,
+                            private_endpoint_connections=[
+                                PrivateEndpointConnection(
+                                    id=private_endpoint_connection.id,
+                                    name=private_endpoint_connection.name,
+                                    type=private_endpoint_connection.type,
+                                )
+                                for private_endpoint_connection in getattr(
+                                    account, "private_endpoint_connections", []
+                                )
+                                if private_endpoint_connection
+                            ],
+                            disable_local_auth=getattr(
+                                account, "disable_local_auth", False
+                            ),
                         )
                     )
             except Exception as error:
@@ -39,6 +51,13 @@ class CosmosDB(AzureService):
                     f"Subscription name: {subscription} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
                 )
         return accounts
+
+
+@dataclass
+class PrivateEndpointConnection:
+    id: str
+    name: str
+    type: str
 
 
 @dataclass
@@ -50,5 +69,5 @@ class Account:
     tags: dict
     is_virtual_network_filter_enabled: bool
     location: str
-    private_endpoint_connections: list[PrivateEndpointConnection] = None
+    private_endpoint_connections: List[PrivateEndpointConnection]
     disable_local_auth: bool = False

@@ -1,4 +1,3 @@
-from re import search
 from unittest import mock
 
 from boto3 import client, resource
@@ -18,15 +17,21 @@ class Test_elbv2_logging_enabled:
     def test_elb_no_balancers(self):
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             # Test Check
@@ -79,15 +84,21 @@ class Test_elbv2_logging_enabled:
 
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             from prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled import (
@@ -99,9 +110,9 @@ class Test_elbv2_logging_enabled:
 
             assert len(result) == 1
             assert result[0].status == "FAIL"
-            assert search(
-                "does not have access logs configured",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "ELBv2 ALB my-lb does not have access logs configured."
             )
             assert result[0].resource_id == "my-lb"
             assert result[0].resource_arn == lb["LoadBalancerArn"]
@@ -145,15 +156,21 @@ class Test_elbv2_logging_enabled:
 
         from prowler.providers.aws.services.elbv2.elbv2_service import ELBv2
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_aws_provider(
-                [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_aws_provider(
+                    [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1]
+                ),
             ),
-        ), mock.patch(
-            "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
-            new=ELBv2(
-                set_mocked_aws_provider([AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1])
+            mock.patch(
+                "prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled.elbv2_client",
+                new=ELBv2(
+                    set_mocked_aws_provider(
+                        [AWS_REGION_EU_WEST_1, AWS_REGION_US_EAST_1],
+                        create_default_organization=False,
+                    )
+                ),
             ),
         ):
             from prowler.providers.aws.services.elbv2.elbv2_logging_enabled.elbv2_logging_enabled import (
@@ -165,9 +182,9 @@ class Test_elbv2_logging_enabled:
 
             assert len(result) == 1
             assert result[0].status == "PASS"
-            assert search(
-                "has access logs to S3 configured",
-                result[0].status_extended,
+            assert (
+                result[0].status_extended
+                == "ELBv2 ALB my-lb has access logs to S3 configured."
             )
             assert result[0].resource_id == "my-lb"
             assert result[0].resource_arn == lb["LoadBalancerArn"]

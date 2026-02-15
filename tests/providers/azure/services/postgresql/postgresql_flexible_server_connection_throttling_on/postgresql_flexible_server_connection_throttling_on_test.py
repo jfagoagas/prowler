@@ -13,12 +13,15 @@ class Test_postgresql_flexible_server_connection_throttling_on:
         postgresql_client = mock.MagicMock
         postgresql_client.flexible_servers = {}
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_azure_provider(),
-        ), mock.patch(
-            "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
-            new=postgresql_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_azure_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
+                new=postgresql_client,
+            ),
         ):
             from prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on import (
                 postgresql_flexible_server_connection_throttling_on,
@@ -38,24 +41,29 @@ class Test_postgresql_flexible_server_connection_throttling_on:
                     id=postgresql_server_id,
                     name=postgresql_server_name,
                     resource_group="resource_group",
+                    location="location",
                     require_secure_transport="OFF",
+                    active_directory_auth=None,
+                    entra_id_admins=[],
                     log_checkpoints="OFF",
                     log_connections="OFF",
                     log_disconnections="OFF",
                     connection_throttling="OFF",
                     log_retention_days="3",
                     firewall=None,
-                    location="location",
                 )
             ]
         }
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_azure_provider(),
-        ), mock.patch(
-            "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
-            new=postgresql_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_azure_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
+                new=postgresql_client,
+            ),
         ):
             from prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on import (
                 postgresql_flexible_server_connection_throttling_on,
@@ -84,24 +92,29 @@ class Test_postgresql_flexible_server_connection_throttling_on:
                     id=postgresql_server_id,
                     name=postgresql_server_name,
                     resource_group="resource_group",
+                    location="location",
                     require_secure_transport="OFF",
+                    active_directory_auth=None,
+                    entra_id_admins=[],
                     log_checkpoints="ON",
                     log_connections="ON",
                     log_disconnections="ON",
                     connection_throttling="ON",
                     log_retention_days="3",
                     firewall=None,
-                    location="location",
                 )
             ]
         }
 
-        with mock.patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=set_mocked_azure_provider(),
-        ), mock.patch(
-            "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
-            new=postgresql_client,
+        with (
+            mock.patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=set_mocked_azure_provider(),
+            ),
+            mock.patch(
+                "prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on.postgresql_client",
+                new=postgresql_client,
+            ),
         ):
             from prowler.providers.azure.services.postgresql.postgresql_flexible_server_connection_throttling_on.postgresql_flexible_server_connection_throttling_on import (
                 postgresql_flexible_server_connection_throttling_on,

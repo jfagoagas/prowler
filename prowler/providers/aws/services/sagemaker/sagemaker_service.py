@@ -1,14 +1,13 @@
 from typing import Optional
 
 from botocore.client import ClientError
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
 from prowler.providers.aws.lib.service.service import AWSService
 
 
-################################ SageMaker
 class SageMaker(AWSService):
     def __init__(self, provider):
         # Call AWSService's __init__
@@ -17,10 +16,14 @@ class SageMaker(AWSService):
         self.sagemaker_models = []
         self.sagemaker_training_jobs = []
         self.endpoint_configs = {}
+
+        # Retrieve resources concurrently
         self.__threading_call__(self._list_notebook_instances)
         self.__threading_call__(self._list_models)
         self.__threading_call__(self._list_training_jobs)
         self.__threading_call__(self._list_endpoint_configs)
+
+        # Describe resources concurrently
         self.__threading_call__(self._describe_model, self.sagemaker_models)
         self.__threading_call__(
             self._describe_notebook_instance, self.sagemaker_notebook_instances
@@ -29,9 +32,21 @@ class SageMaker(AWSService):
             self._describe_training_job, self.sagemaker_training_jobs
         )
         self.__threading_call__(
-            self._describe_endpoint_config, self.endpoint_configs.values()
+            self._describe_endpoint_config, list(self.endpoint_configs.values())
         )
-        self._list_tags_for_resource()
+
+        # List tags concurrently for each resource collection
+        # This replaces the previous sequential sequential execution to improve performance
+        self.__threading_call__(self._list_tags_for_resource, self.sagemaker_models)
+        self.__threading_call__(
+            self._list_tags_for_resource, self.sagemaker_notebook_instances
+        )
+        self.__threading_call__(
+            self._list_tags_for_resource, self.sagemaker_training_jobs
+        )
+        self.__threading_call__(
+            self._list_tags_for_resource, list(self.endpoint_configs.values())
+        )
 
     def _list_notebook_instances(self, regional_client):
         logger.info("SageMaker - listing notebook instances...")
@@ -188,40 +203,16 @@ class SageMaker(AWSService):
                 f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
             )
 
-    def _list_tags_for_resource(self):
+    def _list_tags_for_resource(self, resource):
+        """
+        Lists tags for a specific SageMaker resource.
+        This method is designed to be called in parallel threads for each resource.
+        """
         logger.info("SageMaker - List Tags...")
         try:
-            for model in self.sagemaker_models:
-                regional_client = self.regional_clients[model.region]
-                response = regional_client.list_tags(ResourceArn=model.arn)["Tags"]
-                model.tags = response
-        except Exception as error:
-            logger.error(
-                f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
-            )
-        try:
-            for instance in self.sagemaker_notebook_instances:
-                regional_client = self.regional_clients[instance.region]
-                response = regional_client.list_tags(ResourceArn=instance.arn)["Tags"]
-                instance.tags = response
-        except Exception as error:
-            logger.error(
-                f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
-            )
-        try:
-            for job in self.sagemaker_training_jobs:
-                regional_client = self.regional_clients[job.region]
-                response = regional_client.list_tags(ResourceArn=job.arn)["Tags"]
-                job.tags = response
-        except Exception as error:
-            logger.error(
-                f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
-            )
-        try:
-            for endpoint in self.endpoint_configs.values():
-                regional_client = self.regional_clients[endpoint.region]
-                response = regional_client.list_tags(ResourceArn=endpoint.arn)["Tags"]
-                endpoint.tags = response
+            regional_client = self.regional_clients[resource.region]
+            response = regional_client.list_tags(ResourceArn=resource.arn)["Tags"]
+            resource.tags = response
         except Exception as error:
             logger.error(
                 f"{regional_client.region} -- {error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
@@ -264,9 +255,9 @@ class SageMaker(AWSService):
                 production_variants.append(
                     ProductionVariant(
                         name=production_variant["VariantName"],
-                        initial_instance_count=production_variant[
-                            "InitialInstanceCount"
-                        ],
+                        initial_instance_count=production_variant.get(
+                            "InitialInstanceCount", 0
+                        ),
                     )
                 )
             endpoint_config.production_variants = production_variants

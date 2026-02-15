@@ -1,3 +1,4 @@
+from prowler.config.config import timestamp
 from prowler.lib.check.compliance_models import Compliance
 from prowler.lib.outputs.compliance.cis.models import AWSCISModel
 from prowler.lib.outputs.compliance.compliance_output import ComplianceOutput
@@ -44,10 +45,11 @@ class AWSCIS(ComplianceOutput):
                             Description=compliance.Description,
                             AccountId=finding.account_uid,
                             Region=finding.region,
-                            AssessmentDate=str(finding.timestamp),
+                            AssessmentDate=str(timestamp),
                             Requirements_Id=requirement.Id,
                             Requirements_Description=requirement.Description,
                             Requirements_Attributes_Section=attribute.Section,
+                            Requirements_Attributes_SubSection=attribute.SubSection,
                             Requirements_Attributes_Profile=attribute.Profile,
                             Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                             Requirements_Attributes_Description=attribute.Description,
@@ -56,6 +58,7 @@ class AWSCIS(ComplianceOutput):
                             Requirements_Attributes_RemediationProcedure=attribute.RemediationProcedure,
                             Requirements_Attributes_AuditProcedure=attribute.AuditProcedure,
                             Requirements_Attributes_AdditionalInformation=attribute.AdditionalInformation,
+                            Requirements_Attributes_DefaultValue=attribute.DefaultValue,
                             Requirements_Attributes_References=attribute.References,
                             Status=finding.status,
                             StatusExtended=finding.status_extended,
@@ -63,6 +66,8 @@ class AWSCIS(ComplianceOutput):
                             ResourceName=finding.resource_name,
                             CheckId=finding.check_id,
                             Muted=finding.muted,
+                            Framework=compliance.Framework,
+                            Name=compliance.Name,
                         )
                         self._data.append(compliance_row)
         # Add manual requirements to the compliance output
@@ -74,10 +79,11 @@ class AWSCIS(ComplianceOutput):
                         Description=compliance.Description,
                         AccountId="",
                         Region="",
-                        AssessmentDate=str(finding.timestamp),
+                        AssessmentDate=str(timestamp),
                         Requirements_Id=requirement.Id,
                         Requirements_Description=requirement.Description,
                         Requirements_Attributes_Section=attribute.Section,
+                        Requirements_Attributes_SubSection=attribute.SubSection,
                         Requirements_Attributes_Profile=attribute.Profile,
                         Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                         Requirements_Attributes_Description=attribute.Description,
@@ -86,6 +92,7 @@ class AWSCIS(ComplianceOutput):
                         Requirements_Attributes_RemediationProcedure=attribute.RemediationProcedure,
                         Requirements_Attributes_AuditProcedure=attribute.AuditProcedure,
                         Requirements_Attributes_AdditionalInformation=attribute.AdditionalInformation,
+                        Requirements_Attributes_DefaultValue=attribute.DefaultValue,
                         Requirements_Attributes_References=attribute.References,
                         Status="MANUAL",
                         StatusExtended="Manual check",
@@ -93,5 +100,7 @@ class AWSCIS(ComplianceOutput):
                         ResourceName="Manual check",
                         CheckId="manual",
                         Muted=False,
+                        Framework=compliance.Framework,
+                        Name=compliance.Name,
                     )
                     self._data.append(compliance_row)

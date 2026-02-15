@@ -21,6 +21,9 @@ def mock_make_api_call_secret_accessed_100_days_ago(self, operation_name, kwarg)
                     "LastAccessedDate": datetime(
                         2023, 1, 1, 0, 0, 0, tzinfo=timezone.utc
                     ),
+                    "LastRotatedDate": datetime(
+                        2023, 4, 9, 0, 0, 0, tzinfo=timezone.utc
+                    ),
                     "Tags": [{"Key": "Name", "Value": "test-100-days-secret"}],
                 }
             ]
@@ -39,6 +42,9 @@ def mock_make_api_call_secret_accessed_yesterday(self, operation_name, kwarg):
                     "LastAccessedDate": datetime(
                         2023, 4, 9, 0, 0, 0, tzinfo=timezone.utc
                     ),
+                    "LastRotatedDate": datetime(
+                        2023, 4, 9, 0, 0, 0, tzinfo=timezone.utc
+                    ),
                     "Tags": [{"Key": "Name", "Value": "test-secret"}],
                 }
             ]
@@ -55,12 +61,15 @@ class Test_secretsmanager_secret_unused:
             SecretsManager,
         )
 
-        with patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), patch(
-            "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
-            new=SecretsManager(aws_provider),
+        with (
+            patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            patch(
+                "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
+                new=SecretsManager(aws_provider),
+            ),
         ):
             # Test Check
             from prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused import (
@@ -91,12 +100,15 @@ class Test_secretsmanager_secret_unused:
             SecretsManager,
         )
 
-        with patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), patch(
-            "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
-            new=SecretsManager(aws_provider),
+        with (
+            patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            patch(
+                "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
+                new=SecretsManager(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused import (
                 secretsmanager_secret_unused,
@@ -129,12 +141,15 @@ class Test_secretsmanager_secret_unused:
             SecretsManager,
         )
 
-        with patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), patch(
-            "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
-            new=SecretsManager(aws_provider),
+        with (
+            patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            patch(
+                "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
+                new=SecretsManager(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused import (
                 secretsmanager_secret_unused,
@@ -172,12 +187,15 @@ class Test_secretsmanager_secret_unused:
             SecretsManager,
         )
 
-        with patch(
-            "prowler.providers.common.provider.Provider.get_global_provider",
-            return_value=aws_provider,
-        ), patch(
-            "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
-            new=SecretsManager(aws_provider),
+        with (
+            patch(
+                "prowler.providers.common.provider.Provider.get_global_provider",
+                return_value=aws_provider,
+            ),
+            patch(
+                "prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused.secretsmanager_client",
+                new=SecretsManager(aws_provider),
+            ),
         ):
             from prowler.providers.aws.services.secretsmanager.secretsmanager_secret_unused.secretsmanager_secret_unused import (
                 secretsmanager_secret_unused,

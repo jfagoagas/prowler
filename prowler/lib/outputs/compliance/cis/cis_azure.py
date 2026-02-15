@@ -1,3 +1,4 @@
+from prowler.config.config import timestamp
 from prowler.lib.check.compliance_models import Compliance
 from prowler.lib.outputs.compliance.cis.models import AzureCISModel
 from prowler.lib.outputs.compliance.compliance_output import ComplianceOutput
@@ -42,12 +43,13 @@ class AzureCIS(ComplianceOutput):
                         compliance_row = AzureCISModel(
                             Provider=finding.provider,
                             Description=compliance.Description,
-                            Subscription=finding.account_name,
+                            SubscriptionId=finding.account_uid,
                             Location=finding.region,
-                            AssessmentDate=str(finding.timestamp),
+                            AssessmentDate=str(timestamp),
                             Requirements_Id=requirement.Id,
                             Requirements_Description=requirement.Description,
                             Requirements_Attributes_Section=attribute.Section,
+                            Requirements_Attributes_SubSection=attribute.SubSection,
                             Requirements_Attributes_Profile=attribute.Profile,
                             Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                             Requirements_Attributes_Description=attribute.Description,
@@ -64,6 +66,8 @@ class AzureCIS(ComplianceOutput):
                             ResourceName=finding.resource_name,
                             CheckId=finding.check_id,
                             Muted=finding.muted,
+                            Framework=compliance.Framework,
+                            Name=compliance.Name,
                         )
                         self._data.append(compliance_row)
         # Add manual requirements to the compliance output
@@ -73,12 +77,13 @@ class AzureCIS(ComplianceOutput):
                     compliance_row = AzureCISModel(
                         Provider=compliance.Provider.lower(),
                         Description=compliance.Description,
-                        Subscription="",
+                        SubscriptionId="",
                         Location="",
-                        AssessmentDate=str(finding.timestamp),
+                        AssessmentDate=str(timestamp),
                         Requirements_Id=requirement.Id,
                         Requirements_Description=requirement.Description,
                         Requirements_Attributes_Section=attribute.Section,
+                        Requirements_Attributes_SubSection=attribute.SubSection,
                         Requirements_Attributes_Profile=attribute.Profile,
                         Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                         Requirements_Attributes_Description=attribute.Description,
@@ -95,5 +100,7 @@ class AzureCIS(ComplianceOutput):
                         ResourceName="Manual check",
                         CheckId="manual",
                         Muted=False,
+                        Framework=compliance.Framework,
+                        Name=compliance.Name,
                     )
                     self._data.append(compliance_row)

@@ -1,5 +1,6 @@
 import json
 import os
+from operator import attrgetter
 
 try:
     import grp
@@ -16,7 +17,7 @@ from io import TextIOWrapper
 from ipaddress import ip_address
 from os.path import exists
 from time import mktime
-from typing import Optional
+from typing import Any, Optional
 
 from colorama import Style
 from detect_secrets import SecretsCollection
@@ -24,6 +25,36 @@ from detect_secrets.settings import transient_settings
 
 from prowler.config.config import encoding_format_utf_8
 from prowler.lib.logger import logger
+
+default_detect_secrets_plugins = [
+    {"name": "ArtifactoryDetector"},
+    {"name": "AWSKeyDetector"},
+    {"name": "AzureStorageKeyDetector"},
+    {"name": "BasicAuthDetector"},
+    {"name": "CloudantDetector"},
+    {"name": "DiscordBotTokenDetector"},
+    {"name": "GitHubTokenDetector"},
+    {"name": "GitLabTokenDetector"},
+    {"name": "Base64HighEntropyString", "limit": 6.0},
+    {"name": "HexHighEntropyString", "limit": 3.0},
+    {"name": "IbmCloudIamDetector"},
+    {"name": "IbmCosHmacDetector"},
+    # {"name": "IPPublicDetector"}, https://github.com/Yelp/detect-secrets/pull/885
+    {"name": "JwtTokenDetector"},
+    {"name": "KeywordDetector"},
+    {"name": "MailchimpDetector"},
+    {"name": "NpmDetector"},
+    {"name": "OpenAIDetector"},
+    {"name": "PrivateKeyDetector"},
+    {"name": "PypiTokenDetector"},
+    {"name": "SendGridDetector"},
+    {"name": "SlackDetector"},
+    {"name": "SoftlayerDetector"},
+    {"name": "SquareOAuthDetector"},
+    {"name": "StripeDetector"},
+    # {"name": "TelegramBotTokenDetector"}, https://github.com/Yelp/detect-secrets/pull/878
+    {"name": "TwilioKeyDetector"},
+]
 
 
 def open_file(input_file: str, mode: str = "r") -> TextIOWrapper:
@@ -33,7 +64,7 @@ def open_file(input_file: str, mode: str = "r") -> TextIOWrapper:
     except OSError as os_error:
         if os_error.strerror == "Too many open files":
             logger.critical(
-                "Ooops! You reached your user session maximum open files. To solve this issue, increase the shell session limit by running this command `ulimit -n 4096`. For more info visit https://docs.prowler.cloud/en/latest/troubleshooting/"
+                "Ooops! You reached your user session maximum open files. To solve this issue, increase the shell session limit by running this command `ulimit -n 4096`. For more info visit https://docs.prowler.com/troubleshooting/"
             )
         else:
             logger.critical(
@@ -81,13 +112,17 @@ def hash_sha512(string: str) -> str:
 
 
 def detect_secrets_scan(
-    data: str = None, file=None, excluded_secrets: list[str] = None
+    data: str = None,
+    file=None,
+    excluded_secrets: list[str] = None,
+    detect_secrets_plugins: dict = None,
 ) -> list[dict[str, str]]:
     """detect_secrets_scan scans the data or file for secrets using the detect-secrets library.
     Args:
         data (str): The data to scan for secrets.
         file (str): The file to scan for secrets.
         excluded_secrets (list): A list of regex patterns to exclude from the scan.
+        detect_secrets_plugins (dict): The settings to use for the scan.
     Returns:
         dict: The secrets found in the
     Raises:
@@ -106,36 +141,11 @@ def detect_secrets_scan(
 
         secrets = SecretsCollection()
 
+        if not detect_secrets_plugins:
+            detect_secrets_plugins = default_detect_secrets_plugins
+
         settings = {
-            "plugins_used": [
-                {"name": "ArtifactoryDetector"},
-                {"name": "AWSKeyDetector"},
-                {"name": "AzureStorageKeyDetector"},
-                {"name": "BasicAuthDetector"},
-                {"name": "CloudantDetector"},
-                {"name": "DiscordBotTokenDetector"},
-                {"name": "GitHubTokenDetector"},
-                {"name": "GitLabTokenDetector"},
-                {"name": "Base64HighEntropyString", "limit": 6.0},
-                {"name": "HexHighEntropyString", "limit": 3.0},
-                {"name": "IbmCloudIamDetector"},
-                {"name": "IbmCosHmacDetector"},
-                {"name": "IPPublicDetector"},
-                {"name": "JwtTokenDetector"},
-                {"name": "KeywordDetector"},
-                {"name": "MailchimpDetector"},
-                {"name": "NpmDetector"},
-                {"name": "OpenAIDetector"},
-                {"name": "PrivateKeyDetector"},
-                {"name": "PypiTokenDetector"},
-                {"name": "SendGridDetector"},
-                {"name": "SlackDetector"},
-                {"name": "SoftlayerDetector"},
-                {"name": "SquareOAuthDetector"},
-                {"name": "StripeDetector"},
-                {"name": "TelegramBotTokenDetector"},
-                {"name": "TwilioKeyDetector"},
-            ],
+            "plugins_used": detect_secrets_plugins,
             "filters_used": [
                 {"path": "detect_secrets.filters.common.is_invalid_file"},
                 {"path": "detect_secrets.filters.common.is_known_false_positive"},
@@ -143,6 +153,7 @@ def detect_secrets_scan(
                 {"path": "detect_secrets.filters.heuristic.is_potential_secret"},
             ],
         }
+
         if excluded_secrets and len(excluded_secrets) > 0:
             settings["filters_used"].append(
                 {
@@ -293,3 +304,23 @@ def dict_to_lowercase(d):
             v = dict_to_lowercase(v)
         new_dict[k.lower()] = v
     return new_dict
+
+
+def get_nested_attribute(obj: Any, attr: str) -> Any:
+    """
+    Get a nested attribute from an object.
+    Args:
+        obj (Any): The object to get the attribute from.
+        attr (str): The attribute to get.
+    Returns:
+        Any: The attribute value if present, otherwise "".
+    """
+    try:
+        return attrgetter(attr)(obj)
+    except AttributeError:
+        return ""
+    except Exception as error:
+        logger.error(
+            f"{error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
+        )
+        return ""

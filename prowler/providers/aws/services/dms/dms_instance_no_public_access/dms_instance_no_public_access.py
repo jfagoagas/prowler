@@ -8,11 +8,7 @@ class dms_instance_no_public_access(Check):
     def execute(self):
         findings = []
         for instance in dms_client.instances:
-            report = Check_Report_AWS(self.metadata())
-            report.region = instance.region
-            report.resource_id = instance.id
-            report.resource_arn = instance.arn
-            report.resource_tags = instance.tags
+            report = Check_Report_AWS(metadata=self.metadata(), resource=instance)
             report.status = "PASS"
             report.status_extended = (
                 f"DMS Replication Instance {instance.id} is not publicly accessible."
@@ -29,8 +25,8 @@ class dms_instance_no_public_access(Check):
                                 if check_security_group(
                                     ingress_rule,
                                     "-1",
-                                    ports=None,
                                     any_address=True,
+                                    all_ports=True,
                                 ):
                                     report.status = "FAIL"
                                     report.status_extended = f"DMS Replication Instance {instance.id} is set as publicly accessible and security group {security_group.name} ({security_group.id}) is open to the Internet."

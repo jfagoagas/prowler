@@ -7,9 +7,11 @@ import yaml
 from boto3 import client, resource
 from mock import MagicMock, patch
 from moto import mock_aws
+import pytest
 
 from prowler.config.config import encoding_format_utf_8
 from prowler.providers.aws.lib.mutelist.mutelist import AWSMutelist
+from tests.lib.outputs.fixtures.fixtures import generate_finding_output
 from tests.providers.aws.services.awslambda.awslambda_service_test import (
     create_zip_file,
 )
@@ -303,7 +305,7 @@ class TestAWSMutelist:
 
         mutelist = AWSMutelist(mutelist_content=mutelist_fixture)
 
-        assert mutelist.validate_mutelist()
+        assert len(mutelist.validate_mutelist(mutelist_fixture)) > 0
         assert mutelist.mutelist == mutelist_fixture
 
     def test_validate_mutelist_not_valid_key(self):
@@ -316,9 +318,33 @@ class TestAWSMutelist:
 
         mutelist = AWSMutelist(mutelist_content=mutelist_fixture)
 
-        assert not mutelist.validate_mutelist()
+        assert len(mutelist.validate_mutelist(mutelist_fixture)) == 0
         assert mutelist.mutelist == {}
         assert mutelist.mutelist_file_path is None
+
+    def test_validate_mutelist_raise_on_exception(self):
+        mutelist_path = MUTELIST_FIXTURE_PATH
+        with open(mutelist_path) as f:
+            mutelist_fixture = yaml.safe_load(f)["Mutelist"]
+
+        # Create an invalid mutelist by adding an invalid key
+        invalid_mutelist = mutelist_fixture.copy()
+        invalid_mutelist["Accounts1"] = invalid_mutelist["Accounts"]
+        del invalid_mutelist["Accounts"]
+
+        mutelist = AWSMutelist(mutelist_content=mutelist_fixture)
+
+        # Test that it raises an exception when raise_on_exception=True
+        with pytest.raises(Exception):
+            mutelist.validate_mutelist(invalid_mutelist, raise_on_exception=True)
+
+        # Test that it doesn't raise an exception when raise_on_exception=False (default)
+        result = mutelist.validate_mutelist(invalid_mutelist, raise_on_exception=False)
+        assert result == {}
+
+        # Test that it doesn't raise an exception when raise_on_exception is not specified
+        result = mutelist.validate_mutelist(invalid_mutelist)
+        assert result == {}
 
     def test_mutelist_findings_only_wildcard(self):
         # Mutelist
@@ -847,7 +873,6 @@ class TestAWSMutelist:
     def test_is_muted_aws_default_mutelist(
         self,
     ):
-
         mutelist = AWSMutelist(
             mutelist_path=f"{path.dirname(path.realpath(__file__))}/../../../../../prowler/config/aws_mutelist.yaml"
         )
@@ -1844,3 +1869,89 @@ class TestAWSMutelist:
         allowlist_resources = ["*.es"]
 
         assert AWSMutelist.is_item_matched(allowlist_resources, "google.es")
+
+    def test_mute_finding(self):
+        # Mutelist
+        mutelist_content = {
+            "Accounts": {
+                AWS_ACCOUNT_NUMBER: {
+                    "Checks": {
+                        "check_test": {
+                            "Regions": [AWS_REGION_US_EAST_1, AWS_REGION_EU_WEST_1],
+                            "Resources": ["prowler", "^test", "prowler-pro"],
+                        }
+                    }
+                }
+            }
+        }
+        mutelist = AWSMutelist(mutelist_content=mutelist_content)
+
+        # Finding
+        finding_1 = generate_finding_output(
+            check_id="service_check_test",
+            status="FAIL",
+            region=AWS_REGION_US_EAST_1,
+            resource_uid="prowler",
+            resource_tags=[],
+            muted=False,
+        )
+
+        muted_finding = mutelist.mute_finding(finding_1)
+
+        assert muted_finding.status == "MUTED"
+        assert muted_finding.muted
+        assert muted_finding.raw["status"] == "FAIL"
+
+    def test_is_muted_with_wildcard_check(self):
+        mutelist_content = {
+            "Accounts": {
+                "*": {
+                    "Checks": {
+                        "cloudtrail_*": {
+                            "Regions": ["*"],
+                            "Resources": ["*"],
+                        }
+                    }
+                }
+            }
+        }
+        mutelist = AWSMutelist(mutelist_content=mutelist_content)
+
+        assert not mutelist.is_muted(
+            AWS_ACCOUNT_NUMBER,
+            "iam_inline_policy_no_full_access_to_cloudtrail",
+            AWS_REGION_US_EAST_1,
+            "prowler",
+            "",
+        )
+
+        assert mutelist.is_muted(
+            AWS_ACCOUNT_NUMBER,
+            "cloudtrail_insights_exist",
+            AWS_REGION_US_EAST_1,
+            "prowler",
+            "",
+        )
+
+    def test_is_muted_with_wildcard_in_middle_of_check(self):
+        mutelist_content = {
+            "Accounts": {
+                "*": {
+                    "Checks": {
+                        "guardduty_*_enabled": {
+                            "Regions": ["*"],
+                            "Resources": ["*"],
+                        }
+                    }
+                }
+            }
+        }
+        mutelist = AWSMutelist(mutelist_content=mutelist_content)
+
+        assert mutelist.is_muted(
+            AWS_ACCOUNT_NUMBER,
+            "guardduty_is_enabled",
+            AWS_REGION_US_EAST_1,
+            "prowler",
+            "",
+        )

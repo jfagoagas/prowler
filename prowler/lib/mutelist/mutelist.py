@@ -2,9 +2,85 @@ import re
 from abc import ABC, abstractmethod
 
 import yaml
+from jsonschema import validate
 
 from prowler.lib.logger import logger
-from prowler.lib.mutelist.models import mutelist_schema
+from prowler.lib.outputs.common import Status
+from prowler.lib.outputs.utils import unroll_dict, unroll_tags
+
+mutelist_schema = {
+    "type": "object",
+    "properties": {
+        "Accounts": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {  # Match any account
+                    "type": "object",
+                    "properties": {
+                        "Checks": {
+                            "type": "object",
+                            "patternProperties": {
+                                ".*": {  # Match any check
+                                    "type": "object",
+                                    "properties": {
+                                        "Regions": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                        },
+                                        "Resources": {
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                        },
+                                        "Tags": {  # Optional field
+                                            "type": "array",
+                                            "items": {"type": "string"},
+                                        },
+                                        "Exceptions": {  # Optional field
+                                            "type": "object",
+                                            "properties": {
+                                                "Accounts": {  # Optional field
+                                                    "type": "array",
+                                                    "items": {"type": "string"},
+                                                },
+                                                "Regions": {  # Optional field
+                                                    "type": "array",
+                                                    "items": {"type": "string"},
+                                                },
+                                                "Resources": {  # Optional field
+                                                    "type": "array",
+                                                    "items": {"type": "string"},
+                                                },
+                                                "Tags": {  # Optional field
+                                                    "type": "array",
+                                                    "items": {"type": "string"},
+                                                },
+                                            },
+                                            "additionalProperties": False,
+                                        },
+                                        "Description": {  # Optional field
+                                            "type": "string",
+                                        },
+                                    },
+                                    "required": [
+                                        "Regions",
+                                        "Resources",
+                                    ],  # Mandatory within a check
+                                    "additionalProperties": False,
+                                }
+                            },
+                            "additionalProperties": False,
+                        },
+                    },
+                    "required": ["Checks"],  # Mandatory within an account
+                    "additionalProperties": False,
+                }
+            },
+            "additionalProperties": False,
+        }
+    },
+    "required": ["Accounts"],  # Accounts is mandatory at the root level
+    "additionalProperties": False,
+}
 
 
 class Mutelist(ABC):
@@ -22,7 +98,6 @@ class Mutelist(ABC):
         mutelist_file_path: Property that returns the mutelist file path.
         is_finding_muted: Abstract method to check if a finding is muted.
         get_mutelist_file_from_local_file: Retrieves the mutelist file from a local file.
-        validate_mutelist: Validates the mutelist against a schema.
         is_muted: Checks if a finding is muted for the audited account, check, region, resource, and tags.
         is_muted_in_check: Checks if a check is muted.
         is_excepted: Checks if the account, region, resource, and tags are excepted based on the exceptions.
@@ -43,7 +118,7 @@ class Mutelist(ABC):
             self._mutelist = mutelist_content
 
         if self._mutelist:
-            self.validate_mutelist()
+            self._mutelist = Mutelist.validate_mutelist(self._mutelist)
 
     @property
     def mutelist(self) -> dict:
@@ -66,17 +141,6 @@ class Mutelist(ABC):
                 f"{error.__class__.__name__} -- {error}[{error.__traceback__.tb_lineno}]"
             )
 
-    def validate_mutelist(self) -> bool:
-        try:
-            self._mutelist = mutelist_schema.validate(self._mutelist)
-            return True
-        except Exception as error:
-            logger.error(
-                f"{error.__class__.__name__} -- Mutelist YAML is malformed - {error}[{error.__traceback__.tb_lineno}]"
-            )
-            self._mutelist = {}
-            return False
-
     def is_muted(
         self,
         audited_account: str,
@@ -89,8 +153,10 @@ class Mutelist(ABC):
         Check if the provided finding is muted for the audited account, check, region, resource and tags.
 
         The Mutelist works in a way that each field is ANDed, so if a check is muted for an account, region, resource and tags, it will be muted.
-        The exceptions are ORed, so if a check is excepted for an account, region, resource or tags, it will not be muted.
-        The only particularity is the tags, which are ORed.
+
+        Exceptions use AND logic across specified fields, with unspecified fields treated as wildcards (matching all values).
+
+        Tag matching uses AND logic when multiple tags are listed (all must match). OR logic is achieved using regex alternation (|) within a single tag pattern.
 
         So, for the following Mutelist:
         ```
@@ -103,9 +169,15 @@ class Mutelist(ABC):
                         Resources:
                             - 'i-123456789'
                         Tags:
-                            - 'Name=AdminInstance | Environment=Prod'
+                            - 'Name=AdminInstance|Environment=Prod'
+                        Description: 'Field to describe why the findings associated with these values are muted'
         ```
         The check `ec2_instance_detailed_monitoring_enabled` will be muted for all accounts and regions and for the resource_id 'i-123456789' with at least one of the tags 'Name=AdminInstance' or 'Environment=Prod'.
+
+        Note: The pipe (|) in the tag pattern provides OR logic via regex alternation. To require BOTH tags, use two separate tag entries:
+        Tags:
+            - 'Name=AdminInstance'
+            - 'Environment=Prod'
 
         Args:
             mutelist (dict): Dictionary containing information about muted checks for different accounts.
@@ -237,6 +309,35 @@ class Mutelist(ABC):
             )
             return False
 
+    def mute_finding(self, finding):
+        """
+        Check if the provided finding is muted
+
+        Args:
+            finding (Finding): The finding to be evaluated for muting.
+
+        Returns:
+            Finding: The finding with the status updated if it is muted, otherwise the finding is returned
+
+        """
+        try:
+            if self.is_muted(
+                finding.account_uid,
+                finding.metadata.CheckID,
+                finding.region,
+                finding.resource_uid,
+                unroll_dict(unroll_tags(finding.resource_tags)),
+            ):
+                finding.raw["status"] = finding.status
+                finding.status = Status.MUTED
+                finding.muted = True
+            return finding
+        except Exception as error:
+            logger.error(
+                f"{error.__class__.__name__} -- {error}[{error.__traceback__.tb_lineno}]"
+            )
+            return finding
+
     def is_excepted(
         self,
         exceptions,
@@ -314,12 +415,13 @@ class Mutelist(ABC):
         Args:
             matched_items (list): List of items to be matched.
             finding_items (str): String to search for matched items.
-            tag (bool): If True the search will have a different logic due to the tags being ANDed or ORed:
-                - Check of AND logic -> True if all the tags are present in the finding.
-                - Check of OR logic -> True if any of the tags is present in the finding.
+            tag (bool): If True, uses AND logic across multiple tags in the list.
+                - Multiple tags: ALL tags in matched_items must be present in finding_items (AND logic).
+                - Single tag with regex alternation (|): Matches if pattern is found (enables OR within pattern).
+                - For non-tags: Uses OR logic - returns True if ANY item matches.
 
         Returns:
-            bool: True if any of the matched_items are present in finding_items, otherwise False.
+            bool: For tags - True if ALL patterns match. For non-tags - True if ANY pattern matches.
         """
         try:
             is_item_matched = False
@@ -327,8 +429,8 @@ class Mutelist(ABC):
                 if tag:
                     is_item_matched = True
                 for item in matched_items:
-                    if item.startswith("*"):
-                        item = ".*" + item[1:]
+                    if "*" in item:
+                        item = item.replace("*", ".*")
                     if tag:
                         if not re.search(item, finding_items):
                             is_item_matched = False
@@ -343,3 +445,27 @@ class Mutelist(ABC):
                 f"{error.__class__.__name__} -- {error}[{error.__traceback__.tb_lineno}]"
             )
             return False
+
+    @staticmethod
+    def validate_mutelist(mutelist: dict, raise_on_exception: bool = False) -> dict:
+        """
+        Validate the mutelist against the schema.
+
+        Args:
+            mutelist (dict): The mutelist to be validated.
+            raise_on_exception (bool): Whether to raise an exception if the mutelist is invalid.
+
+        Returns:
+            dict: The mutelist itself.
+        """
+        try:
+            validate(mutelist, schema=mutelist_schema)
+            return mutelist
+        except Exception as error:
+            if raise_on_exception:
+                raise error
+            else:
+                logger.error(
+                    f"{error.__class__.__name__} -- Mutelist YAML is malformed - {error}[{error.__traceback__.tb_lineno}]"
+                )
+            return {}

@@ -1,3 +1,4 @@
+import sys
 import uuid
 from argparse import ArgumentTypeError
 
@@ -16,15 +17,29 @@ prowler_command = "prowler"
 
 # capsys
 # https://docs.pytest.org/en/7.1.x/how-to/capture-stdout-stderr.html
-prowler_default_usage_error = (
-    "usage: prowler [-h] [--version] {aws,azure,gcp,kubernetes,dashboard} ..."
-)
+prowler_default_usage_error = "usage: prowler [-h] [--version] {aws,azure,gcp,kubernetes,m365,github,nhn,mongodbatlas,oraclecloud,alibabacloud,cloudflare,openstack,dashboard,iac,image} ..."
 
 
 def mock_get_available_providers():
-    return ["aws", "azure", "gcp", "kubernetes"]
+    return [
+        "aws",
+        "azure",
+        "gcp",
+        "kubernetes",
+        "m365",
+        "github",
+        "iac",
+        "image",
+        "nhn",
+        "mongodbatlas",
+        "oraclecloud",
+        "alibabacloud",
+        "cloudflare",
+        "openstack",
+    ]
 
 
+@pytest.mark.arg_parser
 class Test_Parser:
     def setup_method(self):
         # We need this to mock the get_available_providers function call
@@ -52,6 +67,7 @@ class Test_Parser:
         assert "output" in parsed.output_directory
         assert not parsed.verbose
         assert not parsed.no_banner
+        assert not parsed.no_color
         assert not parsed.slack
         assert not parsed.unix_timestamp
         assert parsed.log_level == "CRITICAL"
@@ -66,6 +82,7 @@ class Test_Parser:
         assert len(parsed.category) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
+        assert not parsed.excluded_checks_file
         assert not parsed.list_checks
         assert not parsed.list_services
         assert not parsed.list_compliance
@@ -100,6 +117,7 @@ class Test_Parser:
         assert "output" in parsed.output_directory
         assert not parsed.verbose
         assert not parsed.no_banner
+        assert not parsed.no_color
         assert not parsed.slack
         assert not parsed.unix_timestamp
         assert parsed.log_level == "CRITICAL"
@@ -114,6 +132,7 @@ class Test_Parser:
         assert len(parsed.category) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
+        assert not parsed.excluded_checks_file
         assert not parsed.list_checks
         assert not parsed.list_services
         assert not parsed.list_compliance
@@ -140,6 +159,7 @@ class Test_Parser:
         assert "output" in parsed.output_directory
         assert not parsed.verbose
         assert not parsed.no_banner
+        assert not parsed.no_color
         assert not parsed.slack
         assert not parsed.unix_timestamp
         assert parsed.log_level == "CRITICAL"
@@ -154,6 +174,7 @@ class Test_Parser:
         assert len(parsed.category) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
+        assert not parsed.excluded_checks_file
         assert not parsed.list_checks
         assert not parsed.list_services
         assert not parsed.list_compliance
@@ -175,6 +196,7 @@ class Test_Parser:
         assert "output" in parsed.output_directory
         assert not parsed.verbose
         assert not parsed.no_banner
+        assert not parsed.no_color
         assert not parsed.slack
         assert not parsed.unix_timestamp
         assert parsed.log_level == "CRITICAL"
@@ -189,6 +211,7 @@ class Test_Parser:
         assert len(parsed.category) == 0
         assert not parsed.excluded_check
         assert not parsed.excluded_service
+        assert not parsed.excluded_checks_file
         assert not parsed.list_checks
         assert not parsed.list_services
         assert not parsed.list_compliance
@@ -355,6 +378,11 @@ class Test_Parser:
         parsed = self.parser.parse(command)
         assert parsed.no_banner
 
+    def test_root_parser_no_color_long(self):
+        command = [prowler_command, "--no-color"]
+        parsed = self.parser.parse(command)
+        assert parsed.no_color
+
     def test_root_parser_slack(self):
         command = [prowler_command, "--slack"]
         parsed = self.parser.parse(command)
@@ -452,6 +480,13 @@ class Test_Parser:
         assert len(parsed.excluded_check) == 2
         assert excluded_checks_1 in parsed.excluded_check
         assert excluded_checks_2 in parsed.excluded_check
+
+    def test_exclude_checks_parser_excluded_checks_file_long(self):
+        argument = "--excluded-checks-file"
+        filename = "excluded_checks.txt"
+        command = [prowler_command, argument, filename]
+        parsed = self.parser.parse(command)
+        assert parsed.excluded_checks_file == filename
 
     def test_exclude_checks_parser_excluded_services_long(self):
         excluded_service = "accessanalyzer"
@@ -644,7 +679,7 @@ class Test_Parser:
 
     def test_checks_parser_wrong_compliance(self):
         argument = "--compliance"
-        framework = "ens_rd2022_azure"
+        framework = "ens_rd2022_kubernetes"
         command = [prowler_command, argument, framework]
         with pytest.raises(SystemExit) as wrapped_exit:
             _ = self.parser.parse(command)
@@ -1204,6 +1239,23 @@ class Test_Parser:
             == f"{prowler_default_usage_error}\nprowler: error: unrecognized arguments: --subscription-ids\n"
         )
 
+    def test_parser_non_aws_with_json_asff_output(self, capsys):
+        command = [
+            prowler_command,
+            "azure",
+            "--sp-env-auth",
+            "--output-formats",
+            "json-asff",
+        ]
+        with pytest.raises(SystemExit) as wrapped_exit:
+            _ = self.parser.parse(command)
+        assert wrapped_exit.type == SystemExit
+        assert wrapped_exit.value.code == 2
+        assert (
+            capsys.readouterr().err
+            == f"{prowler_default_usage_error}\nprowler: error: json-asff output format is only available for the aws provider, but azure was selected\n"
+        )
+
     def test_parser_gcp_auth_credentials_file(self):
         argument = "--credentials-file"
         file = "test.json"
@@ -1211,6 +1263,14 @@ class Test_Parser:
         parsed = self.parser.parse(command)
         assert parsed.provider == "gcp"
         assert parsed.credentials_file == file
+
+    def test_parser_gcp_organization_id(self):
+        argument = "--organization-id"
+        organization = "test_organization"
+        command = [prowler_command, "gcp", argument, organization]
+        parsed = self.parser.parse(command)
+        assert parsed.provider == "gcp"
+        assert parsed.organization_id == organization
 
     def test_parser_gcp_project_id(self):
         argument = "--project-id"
@@ -1249,6 +1309,14 @@ class Test_Parser:
         assert parsed.provider == "gcp"
         assert parsed.impersonate_service_account == service_account
 
+    def test_parser_gcp_retries_max_attempts(self):
+        argument = "--gcp-retries-max-attempts"
+        max_retries = "10"
+        command = [prowler_command, "gcp", argument, max_retries]
+        parsed = self.parser.parse(command)
+        assert parsed.provider == "gcp"
+        assert parsed.gcp_retries_max_attempts == int(max_retries)
+
     def test_parser_kubernetes_auth_kubeconfig_file(self):
         argument = "--kubeconfig-file"
         file = "config"
@@ -1278,13 +1346,11 @@ class Test_Parser:
         expected_regions = [
             "AzureChinaCloud",
             "AzureUSGovernment",
-            "AzureGermanCloud",
             "AzureCloud",
         ]
         input_regions = [
             "AzureChinaCloud",
             "AzureUSGovernment",
-            "AzureGermanCloud",
             "AzureCloud",
         ]
         for region in input_regions:
@@ -1294,7 +1360,6 @@ class Test_Parser:
         expected_regions = [
             "AzureChinaCloud",
             "AzureUSGovernment",
-            "AzureGermanCloud",
             "AzureCloud",
         ]
         invalid_region = "non-valid-region"
@@ -1307,9 +1372,11 @@ class Test_Parser:
     def test_validate_bucket_invalid_bucket_names(self):
         bad_bucket_names = [
             "xn--bucket-name",
+            "sthree-bucket-name",
+            "amzn-s3-demo-bucket-name",
             "mrryadfpcwlscicvnrchmtmyhwrvzkgfgdxnlnvaaummnywciixnzvycnzmhhpwb",
             "192.168.5.4",
-            "bucket-name-s3alias",
+            "bucket-name--table-s3",
             "bucket-name-s3alias-",
             "bucket-n$ame",
             "bu",
@@ -1325,7 +1392,9 @@ class Test_Parser:
             )
 
     def test_validate_bucket_valid_bucket_names(self):
-        valid_bucket_names = ["bucket-name" "test" "test-test-test"]
+        valid_bucket_names = [
+            "bucket-name" "test" "test-test-test" "test.test.test" "abc"
+        ]
         for bucket_name in valid_bucket_names:
             assert validate_bucket(bucket_name) == bucket_name
 
@@ -1350,3 +1419,13 @@ class Test_Parser:
         valid_role_names = ["prowler-role" "test@" "test=test+test,."]
         for role_name in valid_role_names:
             assert validate_role_session_name(role_name) == role_name
+
+    def test_microsoft365_alias_conversion(self):
+        original_argv = sys.argv.copy()
+        try:
+            sys.argv = ["prowler", "microsoft365"]
+            parser = ProwlerArgumentParser()
+            args = parser.parse()
+            assert args.provider == "m365"
+        finally:
+            sys.argv = original_argv

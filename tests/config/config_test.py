@@ -11,7 +11,6 @@ from prowler.config.config import (
     load_and_validate_config_file,
     load_and_validate_fixer_config_file,
 )
-from prowler.providers.aws.aws_provider import get_aws_available_regions
 
 MOCK_PROWLER_VERSION = "3.3.0"
 MOCK_OLD_PROWLER_VERSION = "0.0.0"
@@ -80,7 +79,7 @@ config_aws = {
     "max_ec2_instance_age_in_days": 180,
     "ec2_allowed_interface_types": ["api_gateway_managed", "vpc_endpoint"],
     "ec2_allowed_instance_owners": ["amazon-elb"],
-    "ec2_sg_high_risk_ports": [
+    "ec2_high_risk_ports": [
         25,
         110,
         135,
@@ -297,6 +296,7 @@ config_aws = {
     "days_to_expire_threshold": 7,
     "insecure_key_algorithms": [
         "RSA-1024",
+        "P-192",
     ],
     "eks_required_log_types": [
         "api",
@@ -307,10 +307,12 @@ config_aws = {
     ],
     "eks_cluster_oldest_version_supported": "1.28",
     "excluded_sensitive_environment_variables": [],
+    "minimum_snapshot_retention_period": 7,
     "elb_min_azs": 2,
     "elbv2_min_azs": 2,
     "secrets_ignore_patterns": [],
     "max_days_secret_unused": 90,
+    "max_days_secret_unrotated": 90,
 }
 
 config_azure = {
@@ -318,9 +320,20 @@ config_azure = {
     "php_latest_version": "8.2",
     "python_latest_version": "3.12",
     "java_latest_version": "17",
+    "recommended_minimal_tls_versions": ["1.2", "1.3"],
+    "desired_vm_sku_sizes": [
+        "Standard_A8_v2",
+        "Standard_DS3_v2",
+        "Standard_D4s_v3",
+    ],
+    "defender_attack_path_minimal_risk_level": "High",
 }
 
-config_gcp = {"shodan_api_key": None}
+config_gcp = {
+    "shodan_api_key": None,
+    "mig_min_zones": 2,
+    "max_unused_account_days": 30,
+}
 
 config_kubernetes = {
     "audit_log_maxbackup": 10,
@@ -345,9 +358,6 @@ config_kubernetes = {
 
 
 class Test_Config:
-    def test_get_aws_available_regions(self):
-        assert len(get_aws_available_regions()) == 34
-
     @mock.patch(
         "prowler.config.config.requests.get", new=mock_prowler_get_latest_release
     )

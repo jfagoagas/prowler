@@ -1,14 +1,13 @@
 from typing import Optional
 
 from botocore.exceptions import ClientError
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
 from prowler.providers.aws.lib.service.service import AWSService
 
 
-################## AccessAnalyzer
 class AccessAnalyzer(AWSService):
     def __init__(self, provider):
         # Call AWSService's __init__
@@ -43,8 +42,10 @@ class AccessAnalyzer(AWSService):
             if analyzer_count == 0:
                 self.analyzers.append(
                     Analyzer(
-                        arn=self.audited_account_arn,
-                        name=self.audited_account,
+                        arn=self.get_unknown_arn(
+                            region=regional_client.region, resource_type="analyzer"
+                        ),
+                        name="analyzer/unknown",
                         status="NOT_AVAILABLE",
                         tags=[],
                         type="",

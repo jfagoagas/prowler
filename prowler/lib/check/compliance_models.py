@@ -3,7 +3,7 @@ import sys
 from enum import Enum
 from typing import Optional, Union
 
-from pydantic import BaseModel, ValidationError, root_validator
+from pydantic.v1 import BaseModel, ValidationError, root_validator
 
 from prowler.lib.check.utils import list_compliance_modules
 from prowler.lib.logger import logger
@@ -56,22 +56,26 @@ class ENS_Requirement_Attribute(BaseModel):
 class Generic_Compliance_Requirement_Attribute(BaseModel):
     """Generic Compliance Requirement Attribute"""
 
-    ItemId: Optional[str]
-    Section: Optional[str]
-    SubSection: Optional[str]
-    SubGroup: Optional[str]
-    Service: Optional[str]
-    Type: Optional[str]
+    ItemId: Optional[str] = None
+    Section: Optional[str] = None
+    SubSection: Optional[str] = None
+    SubGroup: Optional[str] = None
+    Service: Optional[str] = None
+    Type: Optional[str] = None
 
 
-class CIS_Requirement_Attribute_Profile(str):
+class CIS_Requirement_Attribute_Profile(str, Enum):
     """CIS Requirement Attribute Profile"""
 
     Level_1 = "Level 1"
     Level_2 = "Level 2"
+    E3_Level_1 = "E3 Level 1"
+    E3_Level_2 = "E3 Level 2"
+    E5_Level_1 = "E5 Level 1"
+    E5_Level_2 = "E5 Level 2"
 
 
-class CIS_Requirement_Attribute_AssessmentStatus(str):
+class CIS_Requirement_Attribute_AssessmentStatus(str, Enum):
     """CIS Requirement Attribute Assessment Status"""
 
     Manual = "Manual"
@@ -83,6 +87,7 @@ class CIS_Requirement_Attribute(BaseModel):
     """CIS Requirement Attribute"""
 
     Section: str
+    SubSection: Optional[str] = None
     Profile: CIS_Requirement_Attribute_Profile
     AssessmentStatus: CIS_Requirement_Attribute_AssessmentStatus
     Description: str
@@ -91,7 +96,7 @@ class CIS_Requirement_Attribute(BaseModel):
     RemediationProcedure: str
     AuditProcedure: str
     AdditionalInformation: str
-    DefaultValue: Optional[str]
+    DefaultValue: Optional[str] = None
     References: str
 
 
@@ -103,7 +108,7 @@ class AWS_Well_Architected_Requirement_Attribute(BaseModel):
     WellArchitectedQuestionId: str
     WellArchitectedPracticeId: str
     Section: str
-    SubSection: Optional[str]
+    SubSection: Optional[str] = None
     LevelOfRisk: str
     AssessmentMethod: str
     Description: str
@@ -176,10 +181,61 @@ class KISA_ISMSP_Requirement_Attribute(BaseModel):
     Domain: str
     Subdomain: str
     Section: str
-    AuditChecklist: Optional[list[str]]
-    RelatedRegulations: Optional[list[str]]
-    AuditEvidence: Optional[list[str]]
-    NonComplianceCases: Optional[list[str]]
+    AuditChecklist: Optional[list[str]] = None
+    RelatedRegulations: Optional[list[str]] = None
+    AuditEvidence: Optional[list[str]] = None
+    NonComplianceCases: Optional[list[str]] = None
+
+
+# Prowler ThreatScore Requirement Attribute
+class Prowler_ThreatScore_Requirement_Attribute(BaseModel):
+    """Prowler ThreatScore Requirement Attribute"""
+
+    Title: str
+    Section: str
+    SubSection: str
+    AttributeDescription: str
+    AdditionalInformation: str
+    LevelOfRisk: int
+    Weight: int
+
+
+# CCC Requirement Attribute
+class CCC_Requirement_Attribute(BaseModel):
+    """CCC Requirement Attribute"""
+
+    FamilyName: str
+    FamilyDescription: str
+    Section: str
+    SubSection: str
+    SubSectionObjective: str
+    Applicability: list[str]
+    Recommendation: str
+    SectionThreatMappings: list[dict]
+    SectionGuidelineMappings: list[dict]
+
+
+# C5 Germany Requirement Attribute
+class C5Germany_Requirement_Attribute(BaseModel):
+    """C5 Germany Requirement Attribute"""
+
+    Section: str
+    SubSection: str
+    Type: str
+    AboutCriteria: str
+    ComplementaryCriteria: str
+
+
+# CSA CCM v4 Requirement Attribute
+class CSA_CCM_Requirement_Attribute(BaseModel):
+    """CSA Cloud Controls Matrix (CCM) v4 Requirement Attribute"""
+
+    Section: str
+    CCMLite: str
+    IaaS: str
+    PaaS: str
+    SaaS: str
+    ScopeApplicability: list[dict]
 
 
 # Base Compliance Model
@@ -189,7 +245,7 @@ class Compliance_Requirement(BaseModel):
 
     Id: str
     Description: str
-    Name: Optional[str]
+    Name: Optional[str] = None
     Attributes: list[
         Union[
             CIS_Requirement_Attribute,
@@ -197,6 +253,10 @@ class Compliance_Requirement(BaseModel):
             ISO27001_2013_Requirement_Attribute,
             AWS_Well_Architected_Requirement_Attribute,
             KISA_ISMSP_Requirement_Attribute,
+            Prowler_ThreatScore_Requirement_Attribute,
+            CCC_Requirement_Attribute,
+            C5Germany_Requirement_Attribute,
+            CSA_CCM_Requirement_Attribute,
             # Generic_Compliance_Requirement_Attribute must be the last one since it is the fallback for generic compliance framework
             Generic_Compliance_Requirement_Attribute,
         ]
@@ -208,8 +268,9 @@ class Compliance(BaseModel):
     """Compliance holds the base model for every compliance framework"""
 
     Framework: str
+    Name: str
     Provider: str
-    Version: Optional[str]
+    Version: Optional[str] = None
     Description: str
     Requirements: list[
         Union[
@@ -221,12 +282,13 @@ class Compliance(BaseModel):
     @root_validator(pre=True)
     # noqa: F841 - since vulture raises unused variable 'cls'
     def framework_and_provider_must_not_be_empty(cls, values):  # noqa: F841
-        framework, provider = (
+        framework, provider, name = (
             values.get("Framework"),
             values.get("Provider"),
+            values.get("Name"),
         )
-        if framework == "" or provider == "":
-            raise ValueError("Framework or Provider must not be empty")
+        if framework == "" or provider == "" or name == "":
+            raise ValueError("Framework, Provider or Name must not be empty")
         return values
 
     @staticmethod

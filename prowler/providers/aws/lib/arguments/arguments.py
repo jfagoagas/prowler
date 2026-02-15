@@ -1,7 +1,7 @@
 from argparse import ArgumentTypeError, Namespace
 from re import fullmatch, search
 
-from prowler.providers.aws.aws_provider import get_aws_available_regions
+from prowler.providers.aws.aws_provider import AwsProvider
 from prowler.providers.aws.config import ROLE_SESSION_NAME
 from prowler.providers.aws.lib.arn.arn import arn_type
 
@@ -64,7 +64,7 @@ def init_parser(self):
         "-f",
         nargs="+",
         help="AWS region names to run Prowler against",
-        choices=get_aws_available_regions(),
+        choices=AwsProvider.get_regions(partition=None),
     )
     # AWS Organizations
     aws_orgs_subparser = aws_parser.add_argument_group("AWS Organizations")
@@ -224,7 +224,10 @@ def validate_arguments(arguments: Namespace) -> tuple[bool, str]:
 
 def validate_bucket(bucket_name: str) -> str:
     """validate_bucket validates that the input bucket_name is valid"""
-    if search("(?!(^xn--|.+-s3alias$))^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$", bucket_name):
+    if search(
+        "^(?!^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$)(?!.*\.{2})(?!.*\.-)(?!.*-\.)(?!^xn--)(?!^sthree-)(?!^amzn-s3-demo-)(?!.*--table-s3$)[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$",
+        bucket_name,
+    ):
         return bucket_name
     else:
         raise ArgumentTypeError(

@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from prowler.lib.logger import logger
 from prowler.lib.scan_filters.scan_filters import is_resource_filtered
@@ -84,12 +84,13 @@ class Codebuild(AWSService):
             if project_info["source"]["type"] != "NO_SOURCE":
                 project.source = Source(
                     type=project_info["source"]["type"],
-                    location=project_info["source"]["location"],
+                    location=project_info["source"].get("location", ""),
                 )
             project.secondary_sources = []
             for secondary_source in project_info.get("secondarySources", []):
                 source_obj = Source(
-                    type=secondary_source["type"], location=secondary_source["location"]
+                    type=secondary_source["type"],
+                    location=secondary_source.get("location", ""),
                 )
                 project.secondary_sources.append(source_obj)
             environment = project_info.get("environment", {})
@@ -119,6 +120,31 @@ class Codebuild(AWSService):
                 stream_name=cloudwatch_logs.get("streamName", ""),
             )
             project.tags = project_info.get("tags", [])
+            project.service_role_arn = project_info.get("serviceRole", "")
+            project.project_visibility = project_info.get("projectVisibility", "")
+
+            # Extract webhook configuration
+            webhook_data = project_info.get("webhook")
+            if webhook_data:
+                filter_groups = []
+                for fg in webhook_data.get("filterGroups", []):
+                    filters = []
+                    for f in fg:
+                        filters.append(
+                            WebhookFilter(
+                                type=f.get("type", ""),
+                                pattern=f.get("pattern", ""),
+                                exclude_matched_pattern=f.get(
+                                    "excludeMatchedPattern", False
+                                ),
+                            )
+                        )
+                    filter_groups.append(WebhookFilterGroup(filters=filters))
+
+                project.webhook = Webhook(
+                    filter_groups=filter_groups,
+                    branch_filter=webhook_data.get("branchFilter"),
+                )
         except Exception as error:
             logger.error(
                 f"{error.__class__.__name__}[{error.__traceback__.tb_lineno}]: {error}"
@@ -206,19 +232,43 @@ class CloudWatchLogs(BaseModel):
     stream_name: str
 
 
+class WebhookFilter(BaseModel):
+    """Represents a single filter in a webhook filter group."""
+
+    type: str  # ACTOR_ACCOUNT_ID, HEAD_REF, BASE_REF, EVENT, etc.
+    pattern: str
+    exclude_matched_pattern: bool = False
+
+
+class WebhookFilterGroup(BaseModel):
+    """Represents a group of filters (AND logic within group)."""
+
+    filters: List[WebhookFilter] = []
+
+
+class Webhook(BaseModel):
+    """Represents the webhook configuration for a CodeBuild project."""
+
+    filter_groups: List[WebhookFilterGroup] = []
+    branch_filter: Optional[str] = None
+
+
 class Project(BaseModel):
     name: str
     arn: str
     region: str
-    last_build: Optional[Build]
-    last_invoked_time: Optional[datetime.datetime]
-    buildspec: Optional[str]
-    source: Optional[Source]
+    last_build: Optional[Build] = None
+    last_invoked_time: Optional[datetime.datetime] = None
+    buildspec: Optional[str] = None
+    source: Optional[Source] = None
     secondary_sources: Optional[list[Source]] = []
+    service_role_arn: Optional[str] = None
     environment_variables: Optional[List[EnvironmentVariable]]
     s3_logs: Optional[s3Logs]
     cloudwatch_logs: Optional[CloudWatchLogs]
     tags: Optional[list]
+    project_visibility: Optional[str] = None
+    webhook: Optional[Webhook] = None
 
 
 class ExportConfig(BaseModel):
@@ -232,6 +282,6 @@ class ReportGroup(BaseModel):
     arn: str
     name: str
     region: str
-    status: Optional[str]
-    export_config: Optional[ExportConfig]
-    tags: Optional[list]
+    status: Optional[str] = None
+    export_config: Optional[ExportConfig] = None
+    tags: Optional[list] = []

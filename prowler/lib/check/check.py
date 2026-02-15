@@ -1,4 +1,3 @@
-import functools
 import importlib
 import json
 import os
@@ -15,7 +14,7 @@ from colorama import Fore, Style
 import prowler
 from prowler.config.config import orange_color
 from prowler.lib.check.custom_checks_metadata import update_check_metadata
-from prowler.lib.check.models import Check
+from prowler.lib.check.models import Check, load_check_metadata
 from prowler.lib.check.utils import recover_checks_from_provider
 from prowler.lib.logger import logger
 from prowler.lib.outputs.outputs import report
@@ -109,6 +108,48 @@ def parse_checks_from_folder(provider, input_folder: str) -> set:
             f"{error.__class__.__name__}[{error.__traceback__.tb_lineno}] -- {error}"
         )
         sys.exit(1)
+
+
+def load_custom_checks_metadata(input_folder: str) -> dict:
+    """
+    Load check metadata from a custom checks folder without copying the checks.
+    This is used to validate check names before the provider is initialized.
+
+    Args:
+        input_folder (str): Path to the folder containing custom checks.
+
+    Returns:
+        dict: A dictionary with CheckID as key and CheckMetadata as value.
+    """
+    custom_checks_metadata = {}
+
+    try:
+        if not os.path.isdir(input_folder):
+            return custom_checks_metadata
+
+        with os.scandir(input_folder) as checks:
+            for check in checks:
+                if check.is_dir():
+                    check_name = check.name
+                    metadata_file = os.path.join(
+                        input_folder, check_name, f"{check_name}.metadata.json"
+                    )
+                    if os.path.isfile(metadata_file):
+                        try:
+                            check_metadata = load_check_metadata(metadata_file)
+                            custom_checks_metadata[check_metadata.CheckID] = (
+                                check_metadata
+                            )
+                        except Exception as error:
+                            logger.warning(
+                                f"Could not load metadata from {metadata_file}: {error}"
+                            )
+        return custom_checks_metadata
+    except Exception as error:
+        logger.error(
+            f"{error.__class__.__name__}[{error.__traceback__.tb_lineno}] -- {error}"
+        )
+        return custom_checks_metadata
 
 
 # Load checks from custom folder
@@ -274,7 +315,7 @@ def print_checks(
     for check in check_list:
         try:
             print(
-                f"[{bulk_checks_metadata[check].CheckID}] {bulk_checks_metadata[check].CheckTitle} - {Fore.MAGENTA}{bulk_checks_metadata[check].ServiceName} {Fore.YELLOW}[{bulk_checks_metadata[check].Severity}]{Style.RESET_ALL}"
+                f"[{bulk_checks_metadata[check].CheckID}] {bulk_checks_metadata[check].CheckTitle} - {Fore.MAGENTA}{bulk_checks_metadata[check].ServiceName} {Fore.YELLOW}[{bulk_checks_metadata[check].Severity.value}]{Style.RESET_ALL}"
             )
         except KeyError as error:
             logger.error(
@@ -291,32 +332,6 @@ def print_checks(
 
     message = plural_string if checks_num > 1 else singular_string
     print(message)
-
-
-# Parse checks from compliance frameworks specification
-def parse_checks_from_compliance_framework(
-    compliance_frameworks: list, bulk_compliance_frameworks: dict
-) -> list:
-    """parse_checks_from_compliance_framework returns a set of checks from the given compliance_frameworks"""
-    checks_to_execute = set()
-    try:
-        for framework in compliance_frameworks:
-            # compliance_framework_json["Requirements"][*]["Checks"]
-            compliance_framework_checks_list = [
-                requirement.Checks
-                for requirement in bulk_compliance_frameworks[framework].Requirements
-            ]
-            # Reduce nested list into a list
-            # Pythonic functional magic
-            compliance_framework_checks = functools.reduce(
-                lambda x, y: x + y, compliance_framework_checks_list
-            )
-            # Then union this list of checks with the initial one
-            checks_to_execute = checks_to_execute.union(compliance_framework_checks)
-    except Exception as e:
-        logger.error(f"{e.__class__.__name__}[{e.__traceback__.tb_lineno}] -- {e}")
-
-    return checks_to_execute
 
 
 # Import an input check using its path
@@ -381,6 +396,15 @@ def run_fixer(check_findings: list) -> int:
                                     f"\t{orange_color}FIXING{Style.RESET_ALL} {finding.region}... "
                                 )
                                 if fixer(region=finding.region):
+                                    fixed_findings += 1
+                                    print(f"\t{Fore.GREEN}DONE{Style.RESET_ALL}")
+                                else:
+                                    print(f"\t{Fore.RED}ERROR{Style.RESET_ALL}")
+                            elif "resource_arn" in fixer.__code__.co_varnames:
+                                print(
+                                    f"\t{orange_color}FIXING{Style.RESET_ALL} Resource {finding.resource_arn}... "
+                                )
+                                if fixer(resource_arn=finding.resource_arn):
                                     fixed_findings += 1
                                     print(f"\t{Fore.GREEN}DONE{Style.RESET_ALL}")
                                 else:
@@ -469,7 +493,7 @@ def execute_checks(
                     continue
                 if verbose:
                     print(
-                        f"\nCheck ID: {check.CheckID} - {Fore.MAGENTA}{check.ServiceName}{Fore.YELLOW} [{check.Severity}]{Style.RESET_ALL}"
+                        f"\nCheck ID: {check.CheckID} - {Fore.MAGENTA}{check.ServiceName}{Fore.YELLOW} [{check.Severity.value}]{Style.RESET_ALL}"
                     )
                 check_findings = execute(
                     check,
@@ -549,7 +573,7 @@ def execute_checks(
                         continue
                     if verbose:
                         print(
-                            f"\nCheck ID: {check.CheckID} - {Fore.MAGENTA}{check.ServiceName}{Fore.YELLOW} [{check.Severity}]{Style.RESET_ALL}"
+                            f"\nCheck ID: {check.CheckID} - {Fore.MAGENTA}{check.ServiceName}{Fore.YELLOW} [{check.Severity.value}]{Style.RESET_ALL}"
                         )
                     check_findings = execute(
                         check,
@@ -582,19 +606,6 @@ def execute_checks(
                     )
                 bar()
             bar.title = f"-> {Fore.GREEN}Scan completed!{Style.RESET_ALL}"
-
-    # Custom report interface
-    if os.environ.get("PROWLER_REPORT_LIB_PATH"):
-        try:
-            logger.info("Using custom report interface ...")
-            lib = os.environ["PROWLER_REPORT_LIB_PATH"]
-            outputs_module = importlib.import_module(lib)
-            custom_report_interface = getattr(outputs_module, "report")
-
-            # TODO: review this call and see if we can remove the global_provider.output_options since it is contained in the global_provider
-            custom_report_interface(check_findings, output_options, global_provider)
-        except Exception:
-            sys.exit(1)
 
     return all_findings
 
@@ -662,8 +673,31 @@ def execute(
                 )
             elif global_provider.type == "kubernetes":
                 is_finding_muted_args["cluster"] = global_provider.identity.cluster
-
+            elif global_provider.type == "github":
+                is_finding_muted_args["account_name"] = (
+                    global_provider.identity.account_name
+                )
+            elif global_provider.type == "m365":
+                is_finding_muted_args["tenant_id"] = global_provider.identity.tenant_id
+            elif global_provider.type == "mongodbatlas":
+                is_finding_muted_args["organization_id"] = (
+                    global_provider.identity.organization_id
+                )
+            elif global_provider.type == "alibabacloud":
+                is_finding_muted_args["account_id"] = (
+                    global_provider.identity.account_id
+                )
+            elif global_provider.type == "openstack":
+                is_finding_muted_args["project_id"] = (
+                    global_provider.identity.project_id
+                )
             for finding in check_findings:
+                if global_provider.type == "cloudflare":
+                    is_finding_muted_args["account_id"] = finding.account_id
+                if global_provider.type == "azure":
+                    is_finding_muted_args["subscription_id"] = (
+                        global_provider.identity.subscriptions.get(finding.subscription)
+                    )
                 is_finding_muted_args["finding"] = finding
                 finding.muted = global_provider.mutelist.is_finding_muted(
                     **is_finding_muted_args

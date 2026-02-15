@@ -1,5 +1,4 @@
-from datetime import datetime
-
+from prowler.config.config import timestamp
 from prowler.lib.check.compliance_models import Compliance
 from prowler.lib.outputs.compliance.cis.models import KubernetesCISModel
 from prowler.lib.outputs.compliance.compliance_output import ComplianceOutput
@@ -46,10 +45,11 @@ class KubernetesCIS(ComplianceOutput):
                             Description=compliance.Description,
                             Context=finding.account_name,
                             Namespace=finding.region,
-                            AssessmentDate=str(finding.timestamp),
+                            AssessmentDate=str(timestamp),
                             Requirements_Id=requirement.Id,
                             Requirements_Description=requirement.Description,
                             Requirements_Attributes_Section=attribute.Section,
+                            Requirements_Attributes_SubSection=attribute.SubSection,
                             Requirements_Attributes_Profile=attribute.Profile,
                             Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                             Requirements_Attributes_Description=attribute.Description,
@@ -66,6 +66,8 @@ class KubernetesCIS(ComplianceOutput):
                             ResourceName=finding.resource_name,
                             CheckId=finding.check_id,
                             Muted=finding.muted,
+                            Framework=compliance.Framework,
+                            Name=compliance.Name,
                         )
                         self._data.append(compliance_row)
         # Add manual requirements to the compliance output
@@ -77,10 +79,11 @@ class KubernetesCIS(ComplianceOutput):
                         Description=compliance.Description,
                         Context="",
                         Namespace="",
-                        AssessmentDate=str(datetime.now()),
+                        AssessmentDate=str(timestamp),
                         Requirements_Id=requirement.Id,
                         Requirements_Description=requirement.Description,
                         Requirements_Attributes_Section=attribute.Section,
+                        Requirements_Attributes_SubSection=attribute.SubSection,
                         Requirements_Attributes_Profile=attribute.Profile,
                         Requirements_Attributes_AssessmentStatus=attribute.AssessmentStatus,
                         Requirements_Attributes_Description=attribute.Description,
@@ -97,5 +100,7 @@ class KubernetesCIS(ComplianceOutput):
                         ResourceName="Manual check",
                         CheckId="manual",
                         Muted=False,
+                        Framework=compliance.Framework,
+                        Name=compliance.Name,
                     )
                     self._data.append(compliance_row)

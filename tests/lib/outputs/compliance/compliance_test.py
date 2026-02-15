@@ -15,6 +15,7 @@ class TestCompliance:
         check_compliance = [
             Compliance(
                 Framework="CIS",
+                Name="CIS Amazon Web Services Foundations Benchmark v1.4.0",
                 Provider="AWS",
                 Version="1.4",
                 Description="The CIS Benchmark for CIS Amazon Web Services Foundations Benchmark, v1.4.0, Level 1 and 2 provides prescriptive guidance for configuring security options for a subset of Amazon Web Services. It has an emphasis on foundational, testable, and architecture agnostic settings",
@@ -42,6 +43,7 @@ class TestCompliance:
             ),
             Compliance(
                 Framework="CIS",
+                Name="CIS Amazon Web Services Foundations Benchmark v1.5.0",
                 Provider="AWS",
                 Version="1.5",
                 Description="The CIS Amazon Web Services Foundations Benchmark provides prescriptive guidance for configuring security options for a subset of Amazon Web Services with an emphasis on foundational, testable, and architecture agnostic settings.",
@@ -70,9 +72,10 @@ class TestCompliance:
         ]
 
         finding = Check_Report(
-            load_check_metadata(
+            metadata=load_check_metadata(
                 f"{path.dirname(path.realpath(__file__))}/../fixtures/metadata.json"
-            ).json()
+            ).json(),
+            resource={},
         )
         finding.resource_details = "Test resource details"
         finding.resource_id = "test-resource"
@@ -94,6 +97,7 @@ class TestCompliance:
         check_compliance = [
             Compliance(
                 Framework="CIS",
+                Name="CIS Google Cloud Platform Foundation Benchmark v2.0.0",
                 Provider="GCP",
                 Version="2.0",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Google Cloud Computing Platform",
@@ -121,6 +125,7 @@ class TestCompliance:
             ),
             Compliance(
                 Framework="CIS",
+                Name="CIS Google Cloud Platform Foundation Benchmark v2.1.0",
                 Provider="GCP",
                 Version="2.1",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Google Cloud Computing Platform",
@@ -149,9 +154,10 @@ class TestCompliance:
         ]
 
         finding = Check_Report(
-            load_check_metadata(
+            metadata=load_check_metadata(
                 f"{path.dirname(path.realpath(__file__))}/../fixtures/metadata.json"
-            ).json()
+            ).json(),
+            resource={},
         )
         finding.resource_details = "Test resource details"
         finding.resource_id = "test-resource"
@@ -173,6 +179,7 @@ class TestCompliance:
         check_compliance = [
             Compliance(
                 Framework="CIS",
+                Name="CIS Microsoft Azure Foundations Benchmark v2.0.0",
                 Provider="Azure",
                 Version="2.0",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Azuee Platform",
@@ -200,6 +207,7 @@ class TestCompliance:
             ),
             Compliance(
                 Framework="CIS",
+                Name="CIS Microsoft Azure Foundations Benchmark v2.1.0",
                 Provider="Azure",
                 Version="2.1",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Azure Platform",
@@ -228,9 +236,10 @@ class TestCompliance:
         ]
 
         finding = Check_Report(
-            load_check_metadata(
+            metadata=load_check_metadata(
                 f"{path.dirname(path.realpath(__file__))}/../fixtures/metadata.json"
-            ).json()
+            ).json(),
+            resource={},
         )
         finding.resource_details = "Test resource details"
         finding.resource_id = "test-resource"
@@ -252,6 +261,7 @@ class TestCompliance:
         check_compliance = [
             Compliance(
                 Framework="CIS",
+                Name="CIS Kubernetes Benchmark v2.0.0",
                 Provider="Kubernetes",
                 Version="2.0",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Kubernetes Platform",
@@ -279,6 +289,7 @@ class TestCompliance:
             ),
             Compliance(
                 Framework="CIS",
+                Name="CIS Kubernetes Benchmark v2.1.0",
                 Provider="Kubernetes",
                 Version="2.1",
                 Description="This CIS Benchmark is the product of a community consensus process and consists of secure configuration guidelines developed for Kubernetes Platform",
@@ -307,11 +318,11 @@ class TestCompliance:
         ]
 
         finding = Check_Report(
-            load_check_metadata(
+            metadata=load_check_metadata(
                 f"{path.dirname(path.realpath(__file__))}/../fixtures/metadata.json"
-            ).json()
+            ).json(),
+            resource={},
         )
-        print(finding)
         finding.resource_details = "Test resource details"
         finding.resource_id = "test-resource"
         finding.resource_arn = "test-arn"
@@ -327,3 +338,107 @@ class TestCompliance:
             "CIS-2.0": ["2.1.3"],
             "CIS-2.1": ["2.1.3"],
         }
+
+    def test_get_check_compliance_github(self):
+        check_compliance = [
+            Compliance(
+                Framework="CIS",
+                Name="CIS GitHub Benchmark v1.0.0",
+                Provider="Github",
+                Version="1.0",
+                Description="This document provides prescriptive guidance for establishing a secure configuration posture for securing GitHub.",
+                Requirements=[
+                    Compliance_Requirement(
+                        Checks=[],
+                        Id="1.1.11",
+                        Description="Ensure all open comments are resolved before allowing code change merging",
+                        Attributes=[
+                            CIS_Requirement_Attribute(
+                                Section="1.1",
+                                Profile="Level 2",
+                                AssessmentStatus="Manual",
+                                Description='Organizations should enforce a "no open comments" policy before allowing code change merging.',
+                                RationaleStatement="In an open code change proposal, reviewers can leave comments containing their questions and suggestions. These comments can also include potential bugs and security issues. Requiring all comments on a code change proposal to be resolved before it can be merged ensures that every concern is properly addressed or acknowledged before the new code changes are introduced to the code base.",
+                                ImpactStatement="Code change proposals containing open comments would not be able to be merged into the code base.",
+                                RemediationProcedure='For each code repository in use, require open comments to be resolved before the relevant code change can be merged by performing the following:\n \n\n 1. On GitHub.com, navigate to the main page of the repository.\n 2. Under your repository name, click **Settings**.\n 3. In the "Code and automation" section of the sidebar, click **Branches**.\n 4. Next to "Branch protection rules", verify that there is at least one rule for your main branch. If there is, click **Edit** to its right. If there isn\'t, click **Add rule**.\n 5. If you add the rule, under "Branch name pattern", type the branch name or pattern you want to protect.\n 6. Select **Require conversation resolution before merging**.\n 7. Click **Create** or **Save changes**.',
+                                AuditProcedure='For every code repository in use, verify that each merged code change does not contain open, unattended comments by performing the following:\n \n\n 1. On GitHub.com, navigate to the main page of the repository.\n 2. Under your repository name, click **Settings**.\n 3. In the "Code and automation" section of the sidebar, click **Branches**.\n 4. Next to "Branch protection rules", verify that there is at least one rule for your main branch. If there is, click **Edit** to its right. If there isn\'t, you are not compliant.\n 5. Ensure that **Require conversation resolution before merging** is checked.',
+                                AdditionalInformation="",
+                                References="",
+                            )
+                        ],
+                    )
+                ],
+            )
+        ]
+
+        finding = Check_Report(
+            metadata=load_check_metadata(
+                f"{path.dirname(path.realpath(__file__))}/../fixtures/metadata.json"
+            ).json(),
+            resource={},
+        )
+        finding.resource_details = "Test resource details"
+        finding.resource_id = "test-resource"
+        finding.resource_arn = "test-arn"
+        finding.region = "eu-west-1"
+        finding.status = "PASS"
+        finding.status_extended = "This is a test"
+
+        bulk_checks_metadata = {}
+        bulk_checks_metadata["iam_user_accesskey_unused"] = mock.MagicMock()
+        bulk_checks_metadata["iam_user_accesskey_unused"].Compliance = check_compliance
+
+        assert get_check_compliance(finding, "github", bulk_checks_metadata) == {
+            "CIS-1.0": ["1.1.11"],
+        }
+
+
+class TestComplianceOutput:
+    """Test ComplianceOutput file extension parsing fix."""
+
+    def test_compliance_output_file_extension_with_dots(self):
+        """Test that ComplianceOutput correctly parses file extensions when framework names contain dots."""
+        from prowler.lib.outputs.compliance.generic.generic import GenericCompliance
+
+        compliance = Compliance(
+            Framework="CIS",
+            Version="5.0",
+            Provider="AWS",
+            Name="CIS Amazon Web Services Foundations Benchmark v5.0",
+            Description="Test compliance framework",
+            Requirements=[],
+        )
+
+        # Test with problematic file path that contains dots in framework name
+        # This simulates the real scenario from Prowler App S3 integration
+        problematic_file_path = "output/compliance/prowler-output-123456789012-20250101120000_cis_5.0_aws.csv"
+
+        # Create GenericCompliance object with file_path (no explicit file_extension)
+        compliance_output = GenericCompliance(
+            findings=[], compliance=compliance, file_path=problematic_file_path
+        )
+
+        assert compliance_output.file_extension == ".csv"
+        assert compliance_output.file_extension != ".0_aws.csv"
+
+    def test_compliance_output_file_extension_explicit(self):
+        """Test that ComplianceOutput uses explicit file_extension when provided."""
+        from prowler.lib.outputs.compliance.generic.generic import GenericCompliance
+
+        compliance = Compliance(
+            Framework="CIS",
+            Version="5.0",
+            Provider="AWS",
+            Name="CIS Amazon Web Services Foundations Benchmark v5.0",
+            Description="Test compliance framework",
+            Requirements=[],
+        )
+
+        compliance_output = GenericCompliance(
+            findings=[],
+            compliance=compliance,
+            file_path="output/compliance/test",
+            file_extension=".csv",
+        )
+
+        assert compliance_output.file_extension == ".csv"

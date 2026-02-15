@@ -16,10 +16,10 @@ class kms_key_not_publicly_accessible(Check):
                 report.status = "PASS"
                 report.status_extended = f"KMS key {key.id} is not exposed to Public."
                 # If the "Principal" element value is set to { "AWS": "*" } and the policy statement is not using any Condition clauses to filter the access, the selected AWS KMS master key is publicly accessible.
+                # Any KMS action with public principal should be flagged, not just kms:*
                 if is_policy_public(
                     key.policy,
                     kms_client.audited_account,
-                    not_allowed_actions=["kms:*"],
                 ):
                     report.status = "FAIL"
                     report.status_extended = (
